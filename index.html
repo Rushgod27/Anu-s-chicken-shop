@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+  content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+<title>Anu’s Chicken Shop – Home</title>
+
+<style>
+html,body{
+  margin:0;
+  font-family:system-ui;
+  background:#f1f5f9;
+}
+
+.header{
+  background:linear-gradient(135deg,#fbbf24,#f59e0b);
+  padding:20px;
+  font-size:28px;
+  font-weight:900;
+  text-align:center;
+}
+
+.container{
+  max-width:1100px;
+  margin:auto;
+  padding:20px;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
+  gap:20px;
+}
+
+.card{
+  background:#fff;
+  border-radius:22px;
+  padding:26px;
+  text-align:center;
+  box-shadow:0 8px 20px rgba(0,0,0,.08);
+  cursor:pointer;
+  transition:.15s;
+}
+
+.card:hover{
+  transform:scale(1.03);
+}
+
+.icon{
+  font-size:48px;
+  margin-bottom:12px;
+}
+
+.title{
+  font-size:22px;
+  font-weight:900;
+  margin-bottom:6px;
+}
+
+.desc{
+  font-size:15px;
+  color:#64748b;
+}
+
+/* COLORS */
+.billing{background:#eef2ff}
+.sales{background:#ecfeff}
+.stock{background:#f0fdf4}
+.profit{background:#fff7ed}
+.dashboard{background:#fdf2f8}
+</style>
+</head>
+
+<body>
+
+<div class="header">🐔 Anu’s Chicken Shop</div>
+
+<div class="container">
+
+<div class="grid">
+
+<div class="card billing" onclick="go('https://rushgod27.github.io/Anu-s-chicken-shop-/index.html')">
+  <div class="icon">🧾</div>
+  <div class="title">Billing</div>
+  <div class="desc">Create bills & complete sales</div>
+</div>
+
+<div class="card sales" onclick="go('https://rushgod27.github.io/Anu-s-chicken-shop-/dashboard')">
+  <div class="icon">📜</div>
+  <div class="title">Sales Today</div>
+  <div class="desc">Today sales live details</div>
+</div>
+
+<div class="card stock" onclick="go('file:///C:/Users/User/OneDrive/Desktop/Anu's%20chicken%20shop/inventory.html')">
+  <div class="icon">📦</div>
+  <div class="title">Stock Update</div>
+  <div class="desc">Add incoming stock</div>
+</div>
+
+<div class="card profit" onclick="go('file:///C:/Users/User/OneDrive/Desktop/Anu's%20chicken%20shop/P&L.html')">
+  <div class="icon">📊</div>
+  <div class="title">Profit / Loss</div>
+  <div class="desc">See earnings & margins</div>
+</div>
+
+<div class="card dashboard" onclick="go('dashboard.html')">
+  <div class="icon">📈</div>
+  <div class="title">Dashboard</div>
+  <div class="desc">Sold vs left (coming next)</div>
+</div>
+
+</div>
+
+</div>
+
+<script>
+function go(page){
+  window.location.href = page;
+}
+</script>
+
+</body>
+</html>
