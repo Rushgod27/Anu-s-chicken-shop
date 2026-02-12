@@ -2,10 +2,8 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport"
-  content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
-
-<title>Stock Update – Anu’s Chicken Shop</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Stock Entry – Inventory</title>
 
 <style>
 body{
@@ -14,274 +12,245 @@ body{
   background:#f1f5f9;
 }
 .header{
-  background:linear-gradient(135deg,#14532d,#166534);
+  background:#4f46e5;
   color:#fff;
-  padding:18px;
-  font-size:26px;
+  padding:16px;
+  font-size:24px;
   font-weight:900;
   text-align:center;
 }
 .container{
-  max-width:1100px;
+  max-width:900px;
   margin:auto;
   padding:16px;
 }
 .card{
   background:#fff;
-  border-radius:18px;
-  padding:18px;
+  padding:16px;
+  border-radius:16px;
   margin-bottom:16px;
-  box-shadow:0 4px 12px rgba(0,0,0,.08);
+  box-shadow:0 4px 10px rgba(0,0,0,.05);
 }
-h3{
-  margin:0 0 14px;
-  font-size:20px;
-}
-.row{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-}
-input,select,button{
-  padding:14px;
+h3{margin-top:0}
+input, select{
+  width:100%;
+  padding:12px;
   font-size:16px;
+  margin-bottom:10px;
   border-radius:12px;
   border:1px solid #cbd5f5;
 }
-input,select{flex:1}
 button{
-  background:#166534;
-  color:#fff;
-  font-weight:900;
+  padding:14px;
   border:none;
+  border-radius:14px;
+  font-weight:800;
+  cursor:pointer;
 }
-.info{
-  background:#ecfeff;
-  padding:12px;
-  border-radius:12px;
-  color:#155e75;
-  font-size:14px;
-  margin-top:10px;
+.primary{
+  background:#16a34a;
+  color:#fff;
+  width:100%;
 }
-.hidden{display:none}
+.row{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
 </style>
 </head>
 
 <body>
 
-<div class="header">📦 Stock Update</div>
+<div class="header">📦 Stock Entry</div>
 
 <div class="container">
 
-<!-- SUPPLIER -->
 <div class="card">
-<h3>Supplier Details</h3>
-<div class="row">
-  <input id="date" type="date">
-  <input id="supplier" placeholder="Supplier Name">
-</div>
+<h3>General Details</h3>
+<input type="date" id="date">
+<input type="text" id="supplier" placeholder="Supplier Name">
+<select id="paymentStatus">
+  <option value="paid">Paid (Cash/Online)</option>
+  <option value="credit">Credit</option>
+</select>
 </div>
 
-<!-- ITEM -->
 <div class="card">
-<h3>Item Received</h3>
-
+<h3>🐔 Broiler (25% Wastage)</h3>
 <div class="row">
-  <select id="item" onchange="onItemChange()">
-    <option value="">Select Item</option>
-    <option value="broiler">🐔 Broiler</option>
-    <option value="country">🐓 Country</option>
-    <option value="eggs">🥚 Eggs</option>
-    <option value="masala">🌶️ Masala</option>
-  </select>
+<input type="number" id="broilerKg" placeholder="Raw KG">
+<input type="number" id="broilerCost" placeholder="Total Cost ₹">
+</div>
 </div>
 
-<!-- BROILER -->
-<div id="broilerBox" class="hidden">
-  <div class="row">
-    <input id="broilerLiveKg" placeholder="Live KG">
-    <input id="broilerCost" placeholder="Total Cost ₹">
-  </div>
-  <div class="info" id="broilerInfo"></div>
+<div class="card">
+<h3>🐓 Country (No Wastage)</h3>
+<div class="row">
+<input type="number" id="countryKg" placeholder="Raw KG">
+<input type="number" id="countryCost" placeholder="Total Cost ₹">
+</div>
 </div>
 
-<!-- COUNTRY -->
-<div id="countryBox" class="hidden">
-  <div class="row">
-    <input id="countryLiveKg" placeholder="Live KG">
-    <input id="countryCost" placeholder="Total Cost ₹">
-  </div>
-  <div class="info" id="countryInfo"></div>
+<div class="card">
+<h3>🥚 Eggs (1 Tray = 30 Eggs)</h3>
+<div class="row">
+<input type="number" id="eggTrays" placeholder="Number of Trays">
+<input type="number" id="eggCost" placeholder="Total Cost ₹">
+</div>
 </div>
 
-<!-- EGGS -->
-<div id="eggBox" class="hidden">
-  <div class="row">
-    <input id="eggQty" placeholder="Egg Quantity">
-    <input id="eggCost" placeholder="Total Cost ₹">
-  </div>
-  <div class="info" id="eggInfo"></div>
+<div class="card">
+<h3>🌶 Masala (Full Pack Only)</h3>
+<input type="text" id="masalaBrand" placeholder="Brand Name">
+<input type="text" id="packetSize" placeholder="Packet Size (e.g., 100g)">
+<div class="row">
+<input type="number" id="masalaQty" placeholder="Number of Packets">
+<input type="number" id="masalaCost" placeholder="Total Cost ₹">
+</div>
 </div>
 
-<!-- MASALA -->
-<div id="masalaBox" class="hidden">
-  <div class="row">
-    <input id="masalaAmount" placeholder="Stock Value ₹">
-    <input id="masalaCost" placeholder="Total Cost ₹">
-  </div>
-  <div class="info">
-    Masala stock is tracked by ₹ value (no quantity / waste)
-  </div>
-</div>
-
-<button onclick="saveStock()">SAVE STOCK</button>
+<button class="primary" onclick="saveStock()">SAVE STOCK ENTRY</button>
 
 </div>
 
-</div>
 
 <script type="module">
-import { initializeApp } from
-"https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import {
-  getFirestore, collection, addDoc,
-  doc, getDoc, setDoc,
+  getFirestore,
+  collection,
+  addDoc,
   serverTimestamp
-} from
-"https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 initializeApp({
   apiKey:"AIzaSyComVLxo36wvogoBFEoWyea-_yESW9BIPU",
   authDomain:"anus-chicken-shop.firebaseapp.com",
   projectId:"anus-chicken-shop"
 });
+
 const db = getFirestore();
 
 date.value = new Date().toISOString().slice(0,10);
-const WASTE = 0.25;
-
-window.onItemChange = () => {
-  broilerBox.classList.add("hidden");
-  countryBox.classList.add("hidden");
-  eggBox.classList.add("hidden");
-  masalaBox.classList.add("hidden");
-
-  if(item.value==="broiler") broilerBox.classList.remove("hidden");
-  if(item.value==="country") countryBox.classList.remove("hidden");
-  if(item.value==="eggs") eggBox.classList.remove("hidden");
-  if(item.value==="masala") masalaBox.classList.remove("hidden");
-};
-
-/* ENSURE LIVE STOCK */
-async function ensureLive(){
-  const ref = doc(db,"stock_current","live");
-  const snap = await getDoc(ref);
-  if(!snap.exists()){
-    await setDoc(ref,{
-      broiler:{availableKg:0,soldKg:0},
-      country:{availableKg:0,soldKg:0},
-      eggs:{available:0,sold:0},
-      masala:{availableAmount:0,soldAmount:0}
-    });
-  }
-}
-
-async function addToLive(update){
-  await ensureLive();
-  const ref = doc(db,"stock_current","live");
-  const s = (await getDoc(ref)).data();
-
-  if(update.broilerKg) s.broiler.availableKg += update.broilerKg;
-  if(update.countryKg) s.country.availableKg += update.countryKg;
-  if(update.eggs) s.eggs.available += update.eggs;
-  if(update.masalaAmount) s.masala.availableAmount += update.masalaAmount;
-
-  await setDoc(ref,{...s,updatedAt:serverTimestamp()});
-}
 
 window.saveStock = async () => {
-  if(!item.value){alert("Select item");return;}
-  if(!supplier.value){alert("Enter supplier name");return;}
 
-  const base={
-    date:date.value,
-    supplier:supplier.value,
-    type:item.value,
-    createdAt:serverTimestamp()
+  const entryDate = date.value;
+  const supplierName = supplier.value.trim();
+  const payment = paymentStatus.value;
+
+  if(!entryDate || !supplierName){
+    alert("Date and Supplier required");
+    return;
+  }
+
+  const baseData = {
+    date: entryDate,
+    supplier: supplierName,
+    paymentStatus: payment,
+    payments: [],
+    status: "active",
+    createdAt: serverTimestamp()
   };
 
-  let update={};
+  try {
 
-  if(item.value==="broiler"){
-    const live=+broilerLiveKg.value||0;
-    const cost=+broilerCost.value||0;
-    if(live<=0)return alert("Enter live kg");
+    // 🐔 Broiler
+    if(+broilerKg.value > 0 && +broilerCost.value > 0){
 
-    const sellable=live*(1-WASTE);
+      const rawKg = +broilerKg.value;
+      const totalCost = +broilerCost.value;
 
-    await addDoc(collection(db,"stock"),{
-      ...base,
-      liveKg:live,
-      sellableKg:+sellable.toFixed(2),
-      cost,
-      costPerLiveKg:+(cost/live).toFixed(2),
-      costPerSellableKg:+(cost/sellable).toFixed(2),
-      wastePercent:25
-    });
+      const sellableKg = rawKg * 0.75;
+      const costPerSellableKg = totalCost / sellableKg;
 
-    update.broilerKg=sellable;
+      await addDoc(collection(db,"stock_entries"),{
+        ...baseData,
+        type:"broiler",
+        rawKg,
+        wastagePercent:25,
+        sellableKg,
+        remainingKg:sellableKg,
+        totalCost,
+        costPerSellableKg:+costPerSellableKg.toFixed(2)
+      });
+    }
+
+    // 🐓 Country
+    if(+countryKg.value > 0 && +countryCost.value > 0){
+
+      const rawKg = +countryKg.value;
+      const totalCost = +countryCost.value;
+
+      const costPerSellableKg = totalCost / rawKg;
+
+      await addDoc(collection(db,"stock_entries"),{
+        ...baseData,
+        type:"country",
+        rawKg,
+        wastagePercent:0,
+        sellableKg:rawKg,
+        remainingKg:rawKg,
+        totalCost,
+        costPerSellableKg:+costPerSellableKg.toFixed(2)
+      });
+    }
+
+    // 🥚 Eggs
+    if(+eggTrays.value > 0 && +eggCost.value > 0){
+
+      const trays = +eggTrays.value;
+      const totalCost = +eggCost.value;
+
+      const totalEggs = trays * 30;
+      const costPerUnit = totalCost / totalEggs;
+
+      await addDoc(collection(db,"stock_entries"),{
+        ...baseData,
+        type:"eggs",
+        trays,
+        totalEggs,
+        remainingQty:totalEggs,
+        totalCost,
+        costPerUnit:+costPerUnit.toFixed(2)
+      });
+    }
+
+    // 🌶 Masala
+    if(
+      masalaBrand.value &&
+      +masalaQty.value > 0 &&
+      +masalaCost.value > 0
+    ){
+
+      const qty = +masalaQty.value;
+      const totalCost = +masalaCost.value;
+      const costPerUnit = totalCost / qty;
+
+      await addDoc(collection(db,"stock_entries"),{
+        ...baseData,
+        type:"masala",
+        brand:masalaBrand.value.trim(),
+        packetSize:packetSize.value.trim(),
+        receivedQty:qty,
+        remainingQty:qty,
+        totalCost,
+        costPerUnit:+costPerUnit.toFixed(2)
+      });
+    }
+
+    alert("Stock entry saved successfully");
+
+    location.reload();
+
+  } catch(error){
+    alert("Error saving stock: "+error.message);
   }
 
-  if(item.value==="country"){
-    const live=+countryLiveKg.value||0;
-    const cost=+countryCost.value||0;
-    if(live<=0)return alert("Enter live kg");
-
-    await addDoc(collection(db,"stock"),{
-      ...base,
-      liveKg:live,
-      cost,
-      costPerKg:+(cost/live).toFixed(2)
-    });
-
-    update.countryKg=live;
-  }
-
-  if(item.value==="eggs"){
-    const qty=+eggQty.value||0;
-    const cost=+eggCost.value||0;
-    if(qty<=0)return alert("Enter quantity");
-
-    await addDoc(collection(db,"stock"),{
-      ...base,
-      quantity:qty,
-      cost,
-      costPerEgg:+(cost/qty).toFixed(2)
-    });
-
-    update.eggs=qty;
-  }
-
-  if(item.value==="masala"){
-    const amt=+masalaAmount.value||0;
-    const cost=+masalaCost.value||0;
-    if(amt<=0)return alert("Enter masala amount");
-
-    await addDoc(collection(db,"stock"),{
-      ...base,
-      amount:amt,
-      cost,
-      margin:amt-cost
-    });
-
-    update.masalaAmount=amt;
-  }
-
-  await addToLive(update);
-
-  alert("Stock updated successfully");
-  location.reload();
 };
+
 </script>
 
 </body>
