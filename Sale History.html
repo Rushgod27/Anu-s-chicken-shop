@@ -1,10 +1,8 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>Owner Dashboard – Anu’s Chicken Shop</title>
+<title>Sales History</title>
 
 <style>
 body{
@@ -13,206 +11,208 @@ body{
   background:#f1f5f9;
 }
 .header{
-  background:#020617;
+  background:#0f172a;
   color:#fff;
-  padding:18px;
-  font-size:26px;
+  padding:16px;
   font-weight:900;
+  font-size:22px;
   text-align:center;
 }
 .container{
-  max-width:1300px;
+  max-width:1200px;
   margin:auto;
   padding:16px;
 }
 .card{
   background:#fff;
-  border-radius:18px;
-  padding:18px;
+  padding:16px;
+  border-radius:16px;
   margin-bottom:16px;
-  box-shadow:0 6px 14px rgba(0,0,0,.08);
-}
-h3{
-  margin:0 0 14px;
-}
-.row{
-  display:flex;
-  gap:12px;
-  flex-wrap:wrap;
-}
-input,button{
-  padding:14px;
-  font-size:16px;
-  border-radius:12px;
-  border:1px solid #cbd5f5;
-}
-button{
-  background:#4f46e5;
-  color:#fff;
-  font-weight:900;
-  border:none;
+  box-shadow:0 4px 10px rgba(0,0,0,.05);
 }
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:14px;
+  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
+  gap:12px;
 }
 .box{
   background:#f8fafc;
-  border-radius:14px;
-  padding:16px;
+  padding:12px;
+  border-radius:12px;
+  font-weight:800;
 }
-.label{
-  font-size:14px;
-  color:#475569;
+.big{ font-size:18px; }
+button{
+  padding:8px 16px;
+  border:none;
+  border-radius:8px;
+  background:#4f46e5;
+  color:#fff;
+  font-weight:700;
 }
-.value{
-  font-size:26px;
-  font-weight:900;
-  margin-top:6px;
+.bill{
+  background:#f8fafc;
+  padding:12px;
+  border-radius:12px;
+  margin-bottom:10px;
 }
-.good{color:#166534}
-.money{color:#1d4ed8}
+.bill-head{
+  display:flex;
+  justify-content:space-between;
+  font-weight:800;
+}
 </style>
 </head>
 
 <body>
 
-<div class="header">📊 Owner Dashboard</div>
+<div class="header">📊 Sales Dashboard</div>
 
 <div class="container">
 
-<!-- DATE RANGE -->
+<!-- FILTER -->
 <div class="card">
-<h3>Filter Sales by Date</h3>
-<div class="row">
+  <h3>Filter Sales by Date</h3>
   <input type="date" id="fromDate">
   <input type="date" id="toDate">
-  <button onclick="loadDashboard()">Load</button>
-</div>
+  <button onclick="loadData()">Load</button>
 </div>
 
-<!-- SOLD -->
+<!-- SOLD SUMMARY -->
 <div class="card">
-<h3>🔥 Sold (Date Range)</h3>
-<div class="grid">
-  <div class="box">
-    <div class="label">🐔 Broiler Sold</div>
-    <div class="value" id="soldBroiler">0 kg</div>
+  <h3>🔥 Sold (Date Range)</h3>
+  <div class="grid">
+    <div class="box">🐔 Broiler Sold<br><span class="big" id="broilerSold">0</span> kg</div>
+    <div class="box">🐓 Country Sold<br><span class="big" id="countrySold">0</span> kg</div>
+    <div class="box">🥚 Eggs Sold<br><span class="big" id="eggsSold">0</span></div>
+    <div class="box">🌶 Masala Sold<br>₹ <span class="big" id="masalaSold">0</span></div>
+    <div class="box">💰 Total Sales<br>₹ <span class="big" id="totalSales">0</span></div>
   </div>
-  <div class="box">
-    <div class="label">🐓 Country Sold</div>
-    <div class="value" id="soldCountry">0 kg</div>
-  </div>
-  <div class="box">
-    <div class="label">🥚 Eggs Sold</div>
-    <div class="value" id="soldEggs">0</div>
-  </div>
-  <div class="box">
-    <div class="label">🌶️ Masala Sold</div>
-    <div class="value money" id="soldMasala">₹0</div>
-  </div>
-  <div class="box">
-    <div class="label">💰 Total Sales</div>
-    <div class="value money" id="soldTotal">₹0</div>
-  </div>
-</div>
 </div>
 
 <!-- CURRENT STOCK -->
 <div class="card">
-<h3>📦 Current Stock Available (Now)</h3>
-<div class="grid">
-  <div class="box">
-    <div class="label">🐔 Broiler Left</div>
-    <div class="value good" id="leftBroiler">0 kg</div>
-  </div>
-  <div class="box">
-    <div class="label">🐓 Country Left</div>
-    <div class="value good" id="leftCountry">0 kg</div>
-  </div>
-  <div class="box">
-    <div class="label">🥚 Eggs Left</div>
-    <div class="value good" id="leftEggs">0</div>
-  </div>
-  <div class="box">
-    <div class="label">🌶️ Masala Left</div>
-    <div class="value good" id="leftMasala">₹0</div>
+  <h3>📦 Current Stock Available (Now)</h3>
+  <div class="grid">
+    <div class="box">🐔 Broiler Left<br><span class="big" id="broilerStock">0</span> kg</div>
+    <div class="box">🐓 Country Left<br><span class="big" id="countryStock">0</span> kg</div>
+    <div class="box">🥚 Eggs Left<br><span class="big" id="eggsStock">0</span></div>
+    <div class="box">🌶 Masala Left<br>₹ <span class="big" id="masalaStock">0</span></div>
   </div>
 </div>
+
+<!-- DETAILED LIST -->
+<div class="card">
+  <h3>🧾 Bills</h3>
+  <div id="billList">Loading...</div>
 </div>
 
 </div>
 
 <script type="module">
-import { initializeApp } from
-"https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import {
-  getFirestore, collection, query, where,
-  getDocs, doc, getDoc
-} from
-"https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import { getFirestore, collection, getDocs } 
+from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 initializeApp({
   apiKey:"AIzaSyComVLxo36wvogoBFEoWyea-_yESW9BIPU",
   authDomain:"anus-chicken-shop.firebaseapp.com",
   projectId:"anus-chicken-shop"
 });
+
 const db = getFirestore();
 
-/* INIT DATES */
 const today = new Date().toISOString().slice(0,10);
-fromDate.value = today;
-toDate.value = today;
+document.getElementById("fromDate").value = today;
+document.getElementById("toDate").value = today;
 
-window.onload = () => loadDashboard();
+async function loadData(){
 
-window.loadDashboard = async () => {
+  const from = document.getElementById("fromDate").value;
+  const to   = document.getElementById("toDate").value;
 
-  /* ===== SOLD ===== */
+  const salesSnap = await getDocs(collection(db,"sales"));
+  const stockSnap = await getDocs(collection(db,"stock_entries"));
+
   let broiler=0,country=0,eggs=0,masala=0,total=0;
 
-  try{
-    const q = query(
-      collection(db,"sales"),
-      where("date",">=",fromDate.value),
-      where("date","<=",toDate.value)
-    );
-    const snap = await getDocs(q);
+  let bills=[];
 
-    snap.forEach(d=>{
-      const v = d.data();
-      const i = v.items || {};
-      if(i.broiler) broiler += i.broiler.qty || 0;
-      if(i.country) country += i.country.qty || 0;
-      if(i.eggs)    eggs += i.eggs.qty || 0;
-      if(i.masala)  masala += i.masala.amount || 0;
-      total += v.total || 0;
-    });
-  }catch(e){
-    console.warn("Create index if prompted");
+  salesSnap.forEach(d=>{
+    const s = d.data();
+
+    if(s.date >= from && s.date <= to){
+
+      broiler += s.items?.broiler?.qty || 0;
+      country += s.items?.country?.qty || 0;
+      eggs    += s.items?.eggs?.qty || 0;
+      masala  += s.items?.masala?.amount || 0;
+      total   += s.total || 0;
+
+      bills.push(s);
+    }
+  });
+
+  // Update sold section
+  broilerSold.innerText = broiler.toFixed(2);
+  countrySold.innerText = country.toFixed(2);
+  eggsSold.innerText    = eggs;
+  masalaSold.innerText  = masala.toFixed(2);
+  totalSales.innerText  = total.toFixed(2);
+
+  // STOCK SECTION (real-time)
+  let bStock=0,cStock=0,eStock=0,mStock=0;
+
+  stockSnap.forEach(d=>{
+    const s=d.data();
+
+    if(s.type==="broiler")
+      bStock += Number(s.remainingKg)||0;
+
+    if(s.type==="country")
+      cStock += Number(s.remainingKg)||0;
+
+    if(s.type==="eggs")
+      eStock += Number(s.remainingQty)||0;
+
+    if(s.type==="masala")
+      mStock += Number(s.remainingQty)||0;
+  });
+
+  broilerStock.innerText = bStock.toFixed(2);
+  countryStock.innerText = cStock.toFixed(2);
+  eggsStock.innerText    = eStock;
+  masalaStock.innerText  = mStock.toFixed(2);
+
+  // BILL LIST
+  const container=document.getElementById("billList");
+
+  if(bills.length===0){
+    container.innerHTML="No sales found.";
+    return;
   }
 
-  soldBroiler.innerText = broiler.toFixed(2)+" kg";
-  soldCountry.innerText = country.toFixed(2)+" kg";
-  soldEggs.innerText = eggs;
-  soldMasala.innerText = "₹"+masala.toFixed(2);
-  soldTotal.innerText = "₹"+total.toFixed(2);
+  container.innerHTML = bills.reverse().map(s=>`
 
-  /* ===== CURRENT STOCK ===== */
-  const stockSnap = await getDoc(doc(db,"stock_current","live"));
-  if(stockSnap.exists()){
-    const s = stockSnap.data();
-    leftBroiler.innerText =
-      (s.broiler?.availableKg || 0).toFixed(2)+" kg";
-    leftCountry.innerText =
-      (s.country?.availableKg || 0).toFixed(2)+" kg";
-    leftEggs.innerText =
-      s.eggs?.available || 0;
-    leftMasala.innerText =
-      "₹"+(s.masala?.availableAmount || 0).toFixed(2);
-  }
-};
+    <div class="bill">
+      <div class="bill-head">
+        <span>${s.date} | ${s.payment?.toUpperCase()}</span>
+        <span>₹${s.total}</span>
+      </div>
+
+      ${s.items?.broiler?`🐔 Broiler ${s.items.broiler.qty}kg<br>`:''}
+      ${s.items?.country?`🐓 Country ${s.items.country.qty}kg<br>`:''}
+      ${s.items?.eggs?`🥚 Eggs ${s.items.eggs.qty}<br>`:''}
+      ${s.items?.masala?`🌶 Masala ₹${s.items.masala.amount}<br>`:''}
+    </div>
+
+  `).join("");
+
+}
+
+loadData();
+
 </script>
 
 </body>
