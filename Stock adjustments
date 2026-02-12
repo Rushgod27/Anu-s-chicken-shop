@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Stock Reconciliation</title>
+
+<style>
+body{
+  margin:0;
+  font-family:system-ui;
+  background:#f1f5f9;
+}
+.header{
+  background:#0f766e;
+  color:#fff;
+  padding:16px;
+  font-size:22px;
+  font-weight:900;
+  text-align:center;
+}
+.container{
+  max-width:1000px;
+  margin:auto;
+  padding:16px;
+}
+.card{
+  background:#fff;
+  padding:16px;
+  border-radius:16px;
+  margin-bottom:16px;
+  box-shadow:0 4px 10px rgba(0,0,0,.05);
+}
+input, button{
+  padding:6px;
+  margin-top:6px;
+}
+button{
+  background:#16a34a;
+  color:#fff;
+  font-weight:700;
+  border:none;
+  border-radius:6px;
+}
+.log-entry{
+  background:#f8fafc;
+  padding:10px;
+  border-radius:8px;
+  margin-bottom:6px;
+}
+.positive{color:green;font-weight:700;}
+.negative{color:red;font-weight:700;}
+</style>
+</head>
+
+<body>
+
+<div class="header">📦 Stock Reconciliation</div>
+
+<div class="container">
+
+<div class="card" id="reconciliationSection">
+Loading stock...
+</div>
+
+<div class="card">
+<h3>📜 Adjustment History</h3>
+<div id="adjustmentLog">Loading...</div>
+</div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import {
+  getFirestore,
+  collection,
+  getDocs,
+  addDoc,
+  serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+initializeApp({
+  apiKey:"AIzaSyComVLxo36wvogoBFEoWyea-_yESW9BIPU",
+  authDomain:"anus-chicken-shop.firebaseapp.com",
+  projectId:"anus-chicken-shop"
+});
+
+const db = getFirestore();
+
+/* ===============================
+   LOAD STOCK TOTALS
+================================= */
+
+async function loadStock(){
+
+  const container = document.getElementById("reconciliationSection");
+
+  try {
+
+    const snap = await getDocs(collection(db,"stock_entries"));
+
+    let totals = {
+      broiler:0,
+      country:0,
+      eggs:0,
+      masala:0
+    };
+
+    snap.forEach(d=>{
+      const s = d.data();
+
+      if(s.type==="broiler")
+        totals.broiler += Number(s.remainingKg) || 0;
+
+      if(s.type==="country")
+        totals.country += Number(s.remainingKg) || 0;
+
+      if(s.type==="eggs")
+        totals.eggs += Number(s.remainingQty) || 0;
+
+      if(s.type==="masala")
+        totals.masala += Number(s.remainingQty) || 0;
+    });
+
+    container.innerHTML =
+      Object.keys(totals).map(item=>`
+        <h3>${item.toUpperCase()}</h3>
+        App Stock: ${totals[item].toFixed(2)}<br>
+
+        Physical Count:
+        <input type="number" step="0.01" id="physical-${item}"><br>
+
+        Reason:
+        <input type="text" id="reason-${item}" placeholder="Reason"><br>
+
+        <button onclick="adjust('${item}',${totals[item]})">
+          Record Adjustment
+        </button>
+        <hr>
+      `).join("");
+
+  } catch(error){
+    console.error("Stock Load Error:", error);
+    container.innerHTML="Error loading stock.";
+  }
+
+}
+
+/* ===============================
+   ADJUST STOCK (BATCH METHOD)
+================================= */
+
+window.adjust = async (item,current) => {
+
+  const physical = Number(document.getElementById(`physical-${item}`).value) || 0;
+  const reason   = document.getElementById(`reason-${item}`).value || "Manual correction";
+
+  const difference = physical - current;
+
+  if(difference === 0){
+    alert("No difference found.");
+    return;
+  }
+
+  const type  = difference > 0 ? "positive" : "negative";
+  const today = new Date().toISOString().slice(0,10);
+
+  try {
+
+    // 1️⃣ Log Adjustment
+    await addDoc(collection(db,"stock_adjustments"),{
+      date: today,
+      item,
+      quantity: Math.abs(difference),
+      type,
+      reason,
+      createdAt: serverTimestamp()
+    });
+
+    // 2️⃣ Create Adjustment Batch
+    let adjustmentData = {
+      type: item,
+      date: today,
+      adjustment: true,
+      adjustmentType: type,
+      reason,
+      status: "active",
+      createdAt: serverTimestamp()
+    };
+
+    if(item==="broiler" || item==="country"){
+      adjustmentData.rawKg = 0;
+      adjustmentData.sellableKg = 0;
+      adjustmentData.remainingKg = difference;
+      adjustmentData.costPerSellableKg = 0;
+    }
+
+    if(item==="eggs" || item==="masala"){
+      adjustmentData.receivedQty = 0;
+      adjustmentData.remainingQty = difference;
+      adjustmentData.costPerUnit = 0;
+    }
+
+    await addDoc(collection(db,"stock_entries"), adjustmentData);
+
+    alert("Adjustment recorded successfully.");
+    location.reload();
+
+  } catch(error){
+    console.error("Adjustment Error:", error);
+    alert("Error while adjusting stock. Check console.");
+  }
+
+};
+
+/* ===============================
+   LOAD ADJUSTMENT LOG
+================================= */
+
+async function loadLog(){
+
+  try {
+
+    const snap = await getDocs(collection(db,"stock_adjustments"));
+    const container = document.getElementById("adjustmentLog");
+
+    if(snap.empty){
+      container.innerHTML = "No adjustments yet.";
+      return;
+    }
+
+    const docs = snap.docs.slice().reverse();
+
+    container.innerHTML = docs.map(d=>{
+      const a = d.data();
+
+      return `
+        <div class="log-entry">
+          ${a.date} – ${a.item.toUpperCase()}
+          <span class="${a.type==='positive'?'positive':'negative'}">
+            ${a.type==='positive'?'+':'-'}${a.quantity}
+          </span>
+          <br>Reason: ${a.reason || 'N/A'}
+        </div>
+      `;
+
+    }).join("");
+
+  } catch(error){
+    console.error("Log Load Error:", error);
+  }
+
+}
+
+/* ===============================
+   INITIAL LOAD
+================================= */
+
+loadStock();
+loadLog();
+
+</script>
+
+</body>
+</html>
