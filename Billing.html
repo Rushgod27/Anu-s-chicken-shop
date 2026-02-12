@@ -2,7 +2,6 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
@@ -88,7 +87,6 @@ input{
 }
 .return.negative{background:#fee2e2;color:#991b1b}
 
-/* 🔥 EXTRA-LONG KEYPAD */
 .keypad-wrap{
   position:sticky;
   top:10px;
@@ -113,7 +111,6 @@ input{
   background:#374151;
   color:#fff;
   min-height:90px;
-  touch-action:manipulation;
 }
 
 .keypad .del{background:#ef4444}
@@ -132,9 +129,9 @@ input{
 <div class="card">
 <h3>Today’s Prices</h3>
 <div class="row">
-<input id="broilerPrice" placeholder="Broiler ₹/kg" readonly inputmode="none">
-<input id="countryPrice" placeholder="Country ₹/kg" readonly inputmode="none">
-<input id="eggPrice" placeholder="Egg ₹" readonly inputmode="none">
+<input id="broilerPrice" readonly>
+<input id="countryPrice" readonly>
+<input id="eggPrice" readonly>
 </div>
 <button class="primary" onclick="savePrices()">Save Prices</button>
 </div>
@@ -155,8 +152,8 @@ input{
 <button class="btn" onclick="setMode('broiler','kg',this)">KG</button>
 <button class="btn" onclick="setMode('broiler','rs',this)">₹</button>
 </div>
-<input id="broilerKg" placeholder="KG" readonly inputmode="none">
-<input id="broilerRs" placeholder="Amount ₹" style="display:none" readonly inputmode="none">
+<input id="broilerKg" readonly>
+<input id="broilerRs" style="display:none" readonly>
 </div>
 
 <div class="card" id="countryBox" style="display:none">
@@ -165,18 +162,18 @@ input{
 <button class="btn" onclick="setMode('country','kg',this)">KG</button>
 <button class="btn" onclick="setMode('country','rs',this)">₹</button>
 </div>
-<input id="countryKg" placeholder="KG" readonly inputmode="none">
-<input id="countryRs" placeholder="Amount ₹" style="display:none" readonly inputmode="none">
+<input id="countryKg" readonly>
+<input id="countryRs" style="display:none" readonly>
 </div>
 
 <div class="card" id="eggBox" style="display:none">
 <h3>Eggs</h3>
-<input id="eggQty" placeholder="Quantity" readonly inputmode="none">
+<input id="eggQty" readonly>
 </div>
 
 <div class="card" id="masalaBox" style="display:none">
 <h3>Masala</h3>
-<input id="masalaAmt" placeholder="Amount ₹" readonly inputmode="none">
+<input id="masalaAmt" readonly>
 </div>
 
 <div class="card">
@@ -185,7 +182,7 @@ input{
 <button class="btn" onclick="setPayment('cash',this)">Cash</button>
 <button class="btn" onclick="setPayment('online',this)">Online</button>
 </div>
-<input id="received" placeholder="Received ₹" style="display:none" readonly inputmode="none">
+<input id="received" style="display:none" readonly>
 <div id="returnBox" class="return" style="display:none">
 Return ₹ <span id="returnAmt">0.00</span>
 </div>
@@ -194,6 +191,13 @@ Return ₹ <span id="returnAmt">0.00</span>
 <div class="card">
 <div class="total">TOTAL ₹ <span id="total">0.00</span></div>
 <button class="primary" onclick="confirmSale()">SALE</button>
+</div>
+
+<!-- TODAY SALES -->
+<div class="card">
+<h3>🧾 Today Sales</h3>
+<div id="todaySummary" style="font-weight:800;margin-bottom:10px"></div>
+<div id="todayList">Loading...</div>
 </div>
 
 </div>
@@ -218,20 +222,19 @@ Return ₹ <span id="returnAmt">0.00</span>
 </div>
 </div>
 
-
-<!-- 🔥 YOUR ORIGINAL JS — UNCHANGED -->
 <script type="module">
+
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import {
-  getFirestore, collection, addDoc, query, where,
-  orderBy, limit, getDocs, serverTimestamp,
-  doc, getDoc, setDoc, updateDoc
+getFirestore, collection, addDoc, query,
+where, orderBy, getDocs, serverTimestamp,
+updateDoc, doc
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 initializeApp({
-  apiKey:"AIzaSyComVLxo36wvogoBFEoWyea-_yESW9BIPU",
-  authDomain:"anus-chicken-shop.firebaseapp.com",
-  projectId:"anus-chicken-shop"
+apiKey:"AIzaSyComVLxo36wvogoBFEoWyea-_yESW9BIPU",
+authDomain:"anus-chicken-shop.firebaseapp.com",
+projectId:"anus-chicken-shop"
 });
 
 const db=getFirestore();
@@ -246,115 +249,318 @@ window.add=v=>{if(activeInput){activeInput.value+=v;calc()}};
 window.del=()=>{if(activeInput){activeInput.value=activeInput.value.slice(0,-1);calc()}};
 
 window.toggleItem=(t,b)=>{
-  active[t]=!active[t];
-  b.classList.toggle("active");
-  document.getElementById(t+"Box").style.display=active[t]?"block":"none";
-  calc();
+active[t]=!active[t];
+b.classList.toggle("active");
+document.getElementById(t+"Box").style.display=active[t]?"block":"none";
+calc();
 };
 
 window.setMode=(t,m,b)=>{
-  mode[t]=m;
-  b.parentElement.querySelectorAll(".btn").forEach(x=>x.classList.remove("active"));
-  b.classList.add("active");
-  document.getElementById(t+"Kg").style.display=m==="kg"?"block":"none";
-  document.getElementById(t+"Rs").style.display=m==="rs"?"block":"none";
+mode[t]=m;
+b.parentElement.querySelectorAll(".btn").forEach(x=>x.classList.remove("active"));
+b.classList.add("active");
+document.getElementById(t+"Kg").style.display=m==="kg"?"block":"none";
+document.getElementById(t+"Rs").style.display=m==="rs"?"block":"none";
 };
 
 window.setPayment=(p,b)=>{
-  payment=p;
-  b.parentElement.querySelectorAll(".btn").forEach(x=>x.classList.remove("active"));
-  b.classList.add("active");
-  received.style.display=p==="cash"?"block":"none";
-  returnBox.style.display=p==="cash"?"block":"none";
+payment=p;
+b.parentElement.querySelectorAll(".btn").forEach(x=>x.classList.remove("active"));
+b.classList.add("active");
+received.style.display=p==="cash"?"block":"none";
+returnBox.style.display=p==="cash"?"block":"none";
 };
 
 function calc(){
-  let t=0;
-  if(active.broiler)t+=(mode.broiler==="kg"?+broilerKg.value:(+broilerRs.value/+broilerPrice.value||0))*+broilerPrice.value;
-  if(active.country)t+=(mode.country==="kg"?+countryKg.value:(+countryRs.value/+countryPrice.value||0))*+countryPrice.value;
-  if(active.egg)t+=(+eggQty.value||0)*(+eggPrice.value||0);
-  if(active.masala)t+=(+masalaAmt.value||0);
-  total.innerText=t.toFixed(2);
+let t=0;
+if(active.broiler)t+=(mode.broiler==="kg"?+broilerKg.value:(+broilerRs.value/+broilerPrice.value||0))*+broilerPrice.value;
+if(active.country)t+=(mode.country==="kg"?+countryKg.value:(+countryRs.value/+countryPrice.value||0))*+countryPrice.value;
+if(active.egg)t+=(+eggQty.value||0)*(+eggPrice.value||0);
+if(active.masala)t+=(+masalaAmt.value||0);
+total.innerText=t.toFixed(2);
 
-  if(payment==="cash"){
-    const r=(+received.value||0)-t;
-    returnAmt.innerText=r.toFixed(2);
-    returnBox.classList.toggle("negative",r<0);
-  }
+if(payment==="cash"){
+const r=(+received.value||0)-t;
+returnAmt.innerText=r.toFixed(2);
+returnBox.classList.toggle("negative",r<0);
+}
 }
 
-window.savePrices=async()=>{
-  await addDoc(collection(db,"dailyPrices"),{
-    date:today,
-    broilerPrice:+broilerPrice.value,
-    countryPrice:+countryPrice.value,
-    eggPrice:+eggPrice.value,
-    updatedAt:serverTimestamp(),
-    updatedAtMs:Date.now()
+async function loadTodaySales(){
+
+  const snap = await getDocs(collection(db,"sales"));
+  let data = [];
+
+  snap.forEach(d=>{
+    const s=d.data();
+    if(s.date===today){
+      data.push({id:d.id,...s});
+    }
   });
-  alert("Prices saved");
-};
 
-(async()=>{
-  const q=query(collection(db,"dailyPrices"),
-    where("date","==",today),
-    orderBy("updatedAtMs","desc"),
-    limit(1));
-  const s=await getDocs(q);
-  if(!s.empty){
-    const d=s.docs[0].data();
-    broilerPrice.value=d.broilerPrice;
-    countryPrice.value=d.countryPrice;
-    eggPrice.value=d.eggPrice;
-  }
-})();
+  // Sort newest first using createdAt
+  data.sort((a,b)=>
+    (b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)
+  );
 
-async function deductLive(items){
-  const ref=doc(db,"stock_current","live");
-  const snap=await getDoc(ref);
-  let s=snap.exists()?snap.data():{};
+  let totalAmt=0,broiler=0,country=0,eggs=0,masala=0;
 
-  s.broiler ??= {availableKg:0,soldKg:0};
-  s.country ??= {availableKg:0,soldKg:0};
-  s.eggs ??= {available:0,sold:0};
-  s.masala ??= {availableAmount:0,soldAmount:0};
+  data.forEach(s=>{
+    totalAmt+=Number(s.total)||0;
+    broiler+=Number(s.items?.broiler?.qty)||0;
+    country+=Number(s.items?.country?.qty)||0;
+    eggs+=Number(s.items?.eggs?.qty)||0;
+    masala+=Number(s.items?.masala?.amount)||0;
+  });
 
-  if(items.broiler){s.broiler.availableKg-=items.broiler.qty;s.broiler.soldKg+=items.broiler.qty;}
-  if(items.country){s.country.availableKg-=items.country.qty;s.country.soldKg+=items.country.qty;}
-  if(items.eggs){s.eggs.available-=items.eggs.qty;s.eggs.sold+=items.eggs.qty;}
-  if(items.masala){s.masala.availableAmount-=items.masala.amount;s.masala.soldAmount+=items.masala.amount;}
+  todaySummary.innerHTML=`
+    Total ₹ ${totalAmt.toFixed(2)} |
+    Broiler ${broiler.toFixed(3)}kg |
+    Country ${country.toFixed(3)}kg |
+    Eggs ${eggs} |
+    Masala ₹ ${masala.toFixed(2)} |
+    Bills ${data.length}
+  `;
 
-  await setDoc(ref,{...s,updatedAt:serverTimestamp()},{merge:true});
+  todayList.innerHTML = data.map((s,index)=>{
+
+    const time = s.createdAt?.toDate()
+      ? s.createdAt.toDate().toLocaleTimeString()
+      : "";
+
+    return `
+      <div style="background:#f8fafc;padding:12px;border-radius:12px;margin-bottom:10px">
+
+        <div style="display:flex;justify-content:space-between;font-weight:800">
+          <span>${time} | ${s.payment?.toUpperCase()}</span>
+          <span>₹${s.total}</span>
+        </div>
+
+        ${s.items?.broiler?`
+          <div style="font-size:14px">
+            🐔 Broiler ${s.items.broiler.qty}kg ₹${s.items.broiler.amount}
+          </div>`:''}
+
+        ${s.items?.country?`
+          <div style="font-size:14px">
+            🐓 Country ${s.items.country.qty}kg ₹${s.items.country.amount}
+          </div>`:''}
+
+        ${s.items?.eggs?`
+          <div style="font-size:14px">
+            🥚 Eggs ${s.items.eggs.qty} ₹${s.items.eggs.amount}
+          </div>`:''}
+
+        ${s.items?.masala?`
+          <div style="font-size:14px">
+            🌶 Masala ₹${s.items.masala.amount}
+          </div>`:''}
+
+      </div>
+    `;
+  }).join("") || "No sales today";
 }
 
-async function consumeFIFO(type,qty){
-  let r=qty,c=0;
-  const q=query(collection(db,"stock"),where("type","==",type),where("status","==","active"),orderBy("createdAt"));
-  const snap=await getDocs(q);
+window.confirmSale = async()=>{
+
+try{
+
+let items={};
+let finalTotal=0;
+let totalCost=0;
+
+// Prevent empty sale
+if(!active.broiler && !active.country && !active.egg && !active.masala){
+alert("No items selected");
+return;
+}
+
+/* 🐔 BROILER */
+if(active.broiler){
+const rate=+broilerPrice.value||0;
+const qty=mode.broiler==="kg"
+?+broilerKg.value
+:(+broilerRs.value/rate||0);
+
+if(qty>0){
+const amount=qty*rate;
+const cost=await deductStock("broiler",qty);
+
+items.broiler={
+qty:+qty.toFixed(3),
+rate,
+amount:+amount.toFixed(2),
+cost
+};
+
+finalTotal+=amount;
+totalCost+=cost;
+}
+}
+
+/* 🐓 COUNTRY */
+if(active.country){
+const rate=+countryPrice.value||0;
+const qty=mode.country==="kg"
+?+countryKg.value
+:(+countryRs.value/rate||0);
+
+if(qty>0){
+const amount=qty*rate;
+const cost=await deductStock("country",qty);
+
+items.country={
+qty:+qty.toFixed(3),
+rate,
+amount:+amount.toFixed(2),
+cost
+};
+
+finalTotal+=amount;
+totalCost+=cost;
+}
+}
+
+/* 🥚 EGGS */
+if(active.egg){
+const qty=+eggQty.value||0;
+const rate=+eggPrice.value||0;
+
+if(qty>0){
+const amount=qty*rate;
+const cost=await deductStock("eggs",qty);
+
+items.eggs={
+qty,
+rate,
+amount:+amount.toFixed(2),
+cost
+};
+
+finalTotal+=amount;
+totalCost+=cost;
+}
+}
+
+/* 🌶 MASALA */
+if(active.masala){
+const amount=+masalaAmt.value||0;
+
+if(amount>0){
+// assume one packet sold per entry
+const qty=1;
+
+const cost=await deductStock("masala",qty);
+
+items.masala={
+qty,
+amount:+amount.toFixed(2),
+cost
+};
+
+finalTotal+=amount;
+totalCost+=cost;
+}
+}
+
+const profit = finalTotal-totalCost;
+
+await addDoc(collection(db,"sales"),{
+date:today,
+items,
+total:+finalTotal.toFixed(2),
+totalCost:+totalCost.toFixed(2),
+profit:+profit.toFixed(2),
+payment,
+createdAt:serverTimestamp()
+});
+
+alert("Sale saved");
+location.reload();
+
+}catch(e){
+alert(e.message);
+}
+};
+async function loadTodayPrices(){
+  const snap = await getDocs(collection(db,"dailyPrices"));
+  let latest = null;
+
+  snap.forEach(doc=>{
+    const d = doc.data();
+    if(d.date === today){
+      if(!latest || (d.updatedAtMs && d.updatedAtMs > latest.updatedAtMs)){
+        latest = d;
+      }
+    }
+  });
+
+  if(latest){
+    broilerPrice.value = latest.broilerPrice || "";
+    countryPrice.value = latest.countryPrice || "";
+    eggPrice.value = latest.eggPrice || "";
+  }
+}
+
+
+async function deductStock(type, quantity){
+
+  let remaining = quantity;
+  let totalCost = 0;
+
+  const q = query(
+    collection(db,"stock_entries"),
+    where("type","==",type),
+    where("status","==","active"),
+    orderBy("createdAt")
+  );
+
+  const snap = await getDocs(q);
+
   for(const d of snap.docs){
-    if(r<=0)break;
-    const b=d.data();
-    const take=Math.min(b.remainingKg,r);
-    r-=take;c+=take*b.costPerSellableKg;
-    await updateDoc(d.ref,take>=b.remainingKg?{remainingKg:0,status:"closed"}:{remainingKg:b.remainingKg-take});
+
+    if(remaining <= 0) break;
+
+    const batch = d.data();
+
+    const available = (type==="broiler" || type==="country")
+      ? batch.remainingKg
+      : batch.remainingQty;
+
+    const take = Math.min(available, remaining);
+
+    if(type==="broiler" || type==="country"){
+
+      totalCost += take * batch.costPerSellableKg;
+
+      await updateDoc(d.ref,{
+        remainingKg: available - take,
+        status: (available - take)<=0 ? "closed" : "active"
+      });
+
+    }else{
+
+      totalCost += take * batch.costPerUnit;
+
+      await updateDoc(d.ref,{
+        remainingQty: available - take,
+        status: (available - take)<=0 ? "closed" : "active"
+      });
+    }
+
+    remaining -= take;
   }
-  if(r>0)throw new Error("Insufficient "+type);
-  return +c.toFixed(2);
+
+  if(remaining > 0){
+    throw new Error("Insufficient stock for "+type);
+  }
+
+  return +totalCost.toFixed(2);
 }
 
-window.confirmSale=async()=>{
-  let items={};
+loadTodayPrices();
+loadTodaySales();
 
-  if(active.broiler){items.broiler={qty:mode.broiler==="kg"?+broilerKg.value:(+broilerRs.value/+broilerPrice.value)};await consumeFIFO("broiler",items.broiler.qty)}
-  if(active.country){items.country={qty:mode.country==="kg"?+countryKg.value:(+countryRs.value/+countryPrice.value)};await consumeFIFO("country",items.country.qty)}
-  if(active.egg&&+eggQty.value>0)items.eggs={qty:+eggQty.value}
-  if(active.masala&&+masalaAmt.value>0)items.masala={amount:+masalaAmt.value}
-
-  await addDoc(collection(db,"sales"),{date:today,items,total:+total.innerText,payment,createdAt:serverTimestamp()});
-  await deductLive(items);
-  alert("Sale saved");
-  location.reload();
-};
 </script>
 
 </body>
