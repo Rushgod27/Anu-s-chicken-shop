@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Expense Management</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<style>
+body{
+  margin:0;
+  font-family:system-ui;
+  background:#f1f5f9;
+}
+.header{
+  background:#7c3aed;
+  color:#fff;
+  padding:18px;
+  font-size:24px;
+  font-weight:900;
+  text-align:center;
+}
+.container{
+  max-width:1000px;
+  margin:auto;
+  padding:16px;
+}
+.card{
+  background:#fff;
+  padding:16px;
+  border-radius:16px;
+  margin-bottom:20px;
+  box-shadow:0 4px 10px rgba(0,0,0,.05);
+}
+input, select, button{
+  padding:8px;
+  margin:6px 4px;
+  border-radius:8px;
+  border:1px solid #cbd5f5;
+}
+button{
+  background:#16a34a;
+  color:#fff;
+  font-weight:700;
+  border:none;
+}
+.row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:6px;
+}
+.summary{
+  font-weight:800;
+  margin:6px 0;
+}
+</style>
+</head>
+
+<body>
+
+<div class="header">📒 Expense Management</div>
+
+<div class="container">
+
+<div class="card">
+<h3>Add Expense</h3>
+<div class="row">
+<input type="date" id="expDate">
+<select id="expCategory">
+<option value="rent">Rent</option>
+<option value="salary">Salary</option>
+<option value="electricity">Electricity</option>
+<option value="transport">Transport</option>
+<option value="misc">Misc</option>
+</select>
+
+<select id="expType">
+<option value="fixed">Fixed</option>
+<option value="variable">Variable</option>
+</select>
+
+<select id="expPayment">
+<option value="cash">Cash</option>
+<option value="online">Online</option>
+</select>
+
+<input type="number" id="expAmount" placeholder="Amount">
+<input type="text" id="expNote" placeholder="Note">
+<button onclick="addExpense()">Add</button>
+</div>
+</div>
+
+<div class="card">
+<h3>Monthly Summary</h3>
+<div class="summary">Fixed Expenses: ₹ <span id="fixedTotal">0</span></div>
+<div class="summary">Variable Expenses: ₹ <span id="variableTotal">0</span></div>
+<div class="summary">Total Expenses: ₹ <span id="totalExpense">0</span></div>
+<canvas id="expenseChart"></canvas>
+</div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+import {
+getFirestore, collection, addDoc,
+getDocs, serverTimestamp
+} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
+initializeApp({
+apiKey:"AIzaSyComVLxo36wvogoBFEoWyea-_yESW9BIPU",
+authDomain:"anus-chicken-shop.firebaseapp.com",
+projectId:"anus-chicken-shop"
+});
+
+const db=getFirestore();
+
+const today=new Date().toISOString().slice(0,10);
+document.getElementById("expDate").value=today;
+
+window.addExpense=async()=>{
+const date=document.getElementById("expDate").value;
+const category=document.getElementById("expCategory").value;
+const type=document.getElementById("expType").value;
+const payment=document.getElementById("expPayment").value;
+const amount=+document.getElementById("expAmount").value||0;
+const note=document.getElementById("expNote").value;
+
+if(amount<=0){
+alert("Enter valid amount");
+return;
+}
+
+await addDoc(collection(db,"expenses"),{
+date,
+category,
+expenseType:type,
+payment,
+amount,
+note,
+createdAt:serverTimestamp()
+});
+
+alert("Expense Added");
+location.reload();
+};
+
+async function loadExpenses(){
+
+const snap=await getDocs(collection(db,"expenses"));
+
+const now=new Date();
+const currentMonth=now.getMonth();
+const currentYear=now.getFullYear();
+
+let fixed=0;
+let variable=0;
+
+snap.forEach(d=>{
+const e=d.data();
+const expDate=new Date(e.date);
+
+if(expDate.getMonth()===currentMonth &&
+expDate.getFullYear()===currentYear){
+
+if(e.expenseType==="fixed")
+fixed+=e.amount||0;
+
+if(e.expenseType==="variable")
+variable+=e.amount||0;
+}
+});
+
+fixed=+fixed.toFixed(2);
+variable=+variable.toFixed(2);
+
+document.getElementById("fixedTotal").innerText=fixed;
+document.getElementById("variableTotal").innerText=variable;
+document.getElementById("totalExpense").innerText=(fixed+variable).toFixed(2);
+
+new Chart(document.getElementById("expenseChart"),{
+type:"pie",
+data:{
+labels:["Fixed","Variable"],
+datasets:[{
+data:[fixed,variable],
+backgroundColor:["#8b5cf6","#f97316"]
+}]
+}
+});
+
+}
+
+loadExpenses();
+
+</script>
+
+</body>
+</html>
