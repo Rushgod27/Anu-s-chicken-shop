@@ -1,183 +1,160 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Enterprise Owner Panel</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Anu's Chicken Shop</title>
 
 <style>
+
 body{
   margin:0;
   font-family:system-ui;
-  background:#f1f5f9;
+  background:#f8fafc;
 }
+
 .header{
-  background:#111827;
-  color:#fff;
-  padding:18px;
-  font-size:22px;
-  font-weight:900;
+  background:linear-gradient(135deg,#fbbf24,#f59e0b);
+  padding:20px;
   text-align:center;
+  font-size:26px;
+  font-weight:900;
+  color:#111827;
+  box-shadow:0 4px 10px rgba(0,0,0,.08);
 }
+
 .container{
   max-width:1200px;
   margin:auto;
-  padding:16px;
+  padding:30px;
 }
-.card{
-  background:#fff;
-  padding:18px;
-  border-radius:16px;
-  margin-bottom:16px;
-  box-shadow:0 4px 10px rgba(0,0,0,.05);
-}
+
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:12px;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:25px;
 }
-.box{
-  background:#f8fafc;
-  padding:12px;
-  border-radius:12px;
-  font-weight:800;
+
+.card{
+  background:#fff;
+  border-radius:18px;
+  padding:30px;
+  text-align:center;
+  cursor:pointer;
+  transition:.2s;
+  box-shadow:0 8px 20px rgba(0,0,0,.05);
 }
-.big{font-size:18px}
-.red{color:#dc2626}
-.green{color:#16a34a}
+
+.card:hover{
+  transform:translateY(-6px);
+  box-shadow:0 15px 30px rgba(0,0,0,.12);
+}
+
+.icon{
+  font-size:40px;
+  margin-bottom:15px;
+}
+
+.title{
+  font-size:20px;
+  font-weight:900;
+  margin-bottom:8px;
+}
+
+.subtitle{
+  font-size:14px;
+  color:#6b7280;
+}
+
+.footer{
+  margin-top:40px;
+  text-align:center;
+  color:#9ca3af;
+  font-size:13px;
+}
+
+a{
+  text-decoration:none;
+  color:inherit;
+}
+
 </style>
 </head>
 
 <body>
 
-<div class="header">🏢 Enterprise Owner Control Panel</div>
+<div class="header">
+🐔 Anu's Chicken Shop
+</div>
 
 <div class="container">
 
-<div class="card">
-<h3>🟢 Today Performance</h3>
 <div class="grid">
-<div class="box">Revenue ₹ <span id="todayRevenue">0</span></div>
-<div class="box">COGS ₹ <span id="todayCOGS">0</span></div>
-<div class="box green">Gross Profit ₹ <span id="todayProfit">0</span></div>
-<div class="box">Bills <span id="todayBills">0</span></div>
-<div class="box">Avg Bill ₹ <span id="avgBill">0</span></div>
-<div class="box">Profit % <span id="profitPercent">0</span>%</div>
+
+<a href="Billing.html">
+  <div class="card">
+    <div class="icon">🧾</div>
+    <div class="title">Billing</div>
+    <div class="subtitle">Create bills & complete sales</div>
+  </div>
+</a>
+
+<a href="Sale History.html">
+  <div class="card">
+    <div class="icon">📜</div>
+    <div class="title">Sales History</div>
+    <div class="subtitle">View detailed sales reports</div>
+  </div>
+</a>
+
+<a href="Update Stock.html">
+  <div class="card">
+    <div class="icon">📦</div>
+    <div class="title">Stock Update</div>
+    <div class="subtitle">Add incoming stock</div>
+  </div>
+</a>
+
+<a href="Owner pannel.html">
+  <div class="card">
+    <div class="icon">📊</div>
+    <div class="title">Owner Panel</div>
+    <div class="subtitle">Enterprise control dashboard</div>
+  </div>
+</a>
+
+<a href="Expenses">
+  <div class="card">
+    <div class="icon">💸</div>
+    <div class="title">Expenses</div>
+    <div class="subtitle">Manage shop expenses</div>
+  </div>
+</a>
+
+<a href="Supplier dues">
+  <div class="card">
+    <div class="icon">🤝</div>
+    <div class="title">Supplier Dues</div>
+    <div class="subtitle">Track pending payments</div>
+  </div>
+</a>
+
+<a href="Stock adjustments">
+  <div class="card">
+    <div class="icon">⚖️</div>
+    <div class="title">Stock Adjustments</div>
+    <div class="subtitle">Physical vs app reconciliation</div>
+  </div>
+</a>
+
 </div>
-</div>
 
-<div class="card">
-<h3>🟡 Month Overview</h3>
-<div class="grid">
-<div class="box">Revenue ₹ <span id="monthRevenue">0</span></div>
-<div class="box">COGS ₹ <span id="monthCOGS">0</span></div>
-<div class="box green">Gross ₹ <span id="monthProfit">0</span></div>
-<div class="box red">Expenses ₹ <span id="monthExpense">0</span></div>
-<div class="box">Net Real ₹ <span id="monthNet">0</span></div>
-</div>
-</div>
-
-<div class="card">
-<h3>🔵 Inventory Intelligence</h3>
-<div class="grid">
-<div class="box">Stock Cost ₹ <span id="inventoryCost">0</span></div>
-<div class="box">Est Sell ₹ <span id="inventorySell">0</span></div>
-<div class="box green">Potential Profit ₹ <span id="inventoryProfit">0</span></div>
-</div>
-</div>
-
-<div class="card">
-<h3>🔴 Adjustments Insight</h3>
-<div class="grid">
-<div class="box">Positive Adj <span id="posAdj">0</span></div>
-<div class="box">Negative Adj <span id="negAdj">0</span></div>
-<div class="box red">Shrinkage ₹ <span id="shrinkage">0</span></div>
-</div>
+<div class="footer">
+© 2026 Anu’s Chicken Shop • Enterprise System
 </div>
 
 </div>
-
-<script type="module">
-
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, getDocs } 
-from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
-
-initializeApp({
-apiKey:"AIzaSyComVLxo36wvogoBFEoWyea-_yESW9BIPU",
-authDomain:"anus-chicken-shop.firebaseapp.com",
-projectId:"anus-chicken-shop"
-});
-
-const db=getFirestore();
-const today=new Date().toISOString().slice(0,10);
-const now=new Date();
-const month=now.getMonth();
-const year=now.getFullYear();
-
-async function loadData(){
-
-const sales=await getDocs(collection(db,"sales"));
-const stock=await getDocs(collection(db,"stock_entries"));
-const expenses=await getDocs(collection(db,"expenses"));
-const adjustments=await getDocs(collection(db,"stock_adjustments"));
-
-let todayRevenue=0, todayCOGS=0, todayBills=0;
-let monthRevenue=0, monthCOGS=0;
-let inventoryCost=0, inventorySell=0;
-let monthExpense=0;
-let pos=0,neg=0;
-
-sales.forEach(d=>{
-const s=d.data();
-if(s.date===today){
-todayRevenue+=s.total||0;
-todayBills++;
-}
-if(new Date(s.date).getMonth()===month){
-monthRevenue+=s.total||0;
-}
-});
-
-stock.forEach(d=>{
-const s=d.data();
-if(s.remainingKg){
-inventoryCost += s.remainingKg*(s.costPerSellableKg||0);
-}
-if(s.remainingQty){
-inventoryCost += s.remainingQty*(s.costPerUnit||0);
-}
-});
-
-expenses.forEach(d=>{
-const e=d.data();
-if(new Date(e.date).getMonth()===month){
-monthExpense+=e.amount||0;
-}
-});
-
-adjustments.forEach(d=>{
-const a=d.data();
-if(a.type==="positive") pos+=a.quantity||0;
-if(a.type==="negative") neg+=a.quantity||0;
-});
-
-document.getElementById("todayRevenue").innerText=todayRevenue.toFixed(2);
-document.getElementById("todayBills").innerText=todayBills;
-document.getElementById("avgBill").innerText=
-(todayBills? todayRevenue/todayBills:0).toFixed(2);
-
-document.getElementById("monthRevenue").innerText=monthRevenue.toFixed(2);
-document.getElementById("inventoryCost").innerText=inventoryCost.toFixed(2);
-document.getElementById("monthExpense").innerText=monthExpense.toFixed(2);
-
-document.getElementById("posAdj").innerText=pos.toFixed(2);
-document.getElementById("negAdj").innerText=neg.toFixed(2);
-
-}
-
-loadData();
-
-</script>
 
 </body>
 </html>
