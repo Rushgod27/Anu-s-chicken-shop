@@ -102,7 +102,7 @@ button{
   <h3>Date Range Filter</h3>
   <input type="date" id="fromDate">
   <input type="date" id="toDate">
-  <button onclick="loadData()">Load</button>
+  <button id="loadBtn">Load</button>
 </div>
 
 <div class="card">
@@ -150,31 +150,41 @@ initializeApp({
 });
 
 const db = getFirestore();
-let salesChart, profitChart, productPieChart;
+
+let salesChart = null;
+let profitChart = null;
+let productPieChart = null;
 
 function todayLocal(){
-  const d=new Date();
+  const d = new Date();
   return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 }
 
-fromDate.value=todayLocal();
-toDate.value=todayLocal();
+document.getElementById("fromDate").value = todayLocal();
+document.getElementById("toDate").value = todayLocal();
+
+document.getElementById("loadBtn").addEventListener("click", loadData);
 
 async function loadData(){
 
-  const from = fromDate.value;
-  const to   = toDate.value;
+  const from = document.getElementById("fromDate").value;
+  const to   = document.getElementById("toDate").value;
 
   const snap = await getDocs(collection(db,"sales"));
 
-  let totalSales=0,totalCost=0,totalProfit=0,totalBills=0;
+  let totalSales = 0;
+  let totalCost = 0;
+  let totalProfit = 0;
+  let totalBills = 0;
+
   let broilerProfit=0,countryProfit=0,eggProfit=0,masalaProfit=0;
-  let daily={}, bills=[];
+  let daily = {};
+  let bills = [];
 
   snap.forEach(doc=>{
     const s = doc.data();
+    if(!s.date) return;
 
-    // ✅ FILTER USING DATE STRING (NO TIMEZONE ISSUE)
     if(s.date < from || s.date > to) return;
 
     totalSales += s.total || 0;
@@ -198,24 +208,25 @@ async function loadData(){
   const avgBill = totalBills ? (totalSales/totalBills) : 0;
   const avgProfit = totalBills ? (totalProfit/totalBills) : 0;
 
-  const productProfits={
-    Broiler: broilerProfit,
-    Country: countryProfit,
-    Eggs: eggProfit,
-    Masala: masalaProfit
+  const productProfits = {
+    Broiler:broilerProfit,
+    Country:countryProfit,
+    Eggs:eggProfit,
+    Masala:masalaProfit
   };
 
   const best = Object.keys(productProfits)
     .reduce((a,b)=>productProfits[a]>productProfits[b]?a:b,"Broiler");
 
-  totalSales.innerText = totalSales.toFixed(2);
-  totalCost.innerText = totalCost.toFixed(2);
-  totalProfit.innerText = totalProfit.toFixed(2);
-  profitPercent.innerText = profitPercent.toFixed(2);
-  totalBills.innerText = totalBills;
-  avgBill.innerText = avgBill.toFixed(2);
-  avgProfit.innerText = avgProfit.toFixed(2);
-  bestProduct.innerText = best;
+  // Update UI
+  document.getElementById("totalSales").innerText = totalSales.toFixed(2);
+  document.getElementById("totalCost").innerText = totalCost.toFixed(2);
+  document.getElementById("totalProfit").innerText = totalProfit.toFixed(2);
+  document.getElementById("profitPercent").innerText = profitPercent.toFixed(2);
+  document.getElementById("totalBills").innerText = totalBills;
+  document.getElementById("avgBill").innerText = avgBill.toFixed(2);
+  document.getElementById("avgProfit").innerText = avgProfit.toFixed(2);
+  document.getElementById("bestProduct").innerText = best;
 
   const labels = Object.keys(daily).sort();
   const salesData = labels.map(d=>daily[d].sales);
@@ -243,12 +254,14 @@ async function loadData(){
     }
   });
 
+  const list = document.getElementById("billList");
+
   if(bills.length===0){
-    billList.innerHTML="No Sales";
+    list.innerHTML="No Sales";
     return;
   }
 
-  billList.innerHTML = bills.map(s=>`
+  list.innerHTML = bills.map(s=>`
     <div class="bill">
       <div class="bill-head">
         <span>${s.date} | ${s.payment?.toUpperCase()}</span>
@@ -258,6 +271,7 @@ async function loadData(){
   `).join("");
 }
 
+// Load on startup
 loadData();
 
 </script>
