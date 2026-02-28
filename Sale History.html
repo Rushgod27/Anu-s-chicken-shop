@@ -8,11 +8,6 @@
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-
-/* ============================
-   CORPORATE ANALYTICS THEME
-============================ */
-
 body{
   margin:0;
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
@@ -20,7 +15,6 @@ body{
   color:#1f2937;
 }
 
-/* HEADER */
 .header{
   background:linear-gradient(135deg,#111827,#1f2937);
   color:#fff;
@@ -28,8 +22,6 @@ body{
   font-size:24px;
   font-weight:900;
   text-align:center;
-  letter-spacing:1px;
-  box-shadow:0 6px 16px rgba(0,0,0,0.25);
 }
 
 .container{
@@ -38,28 +30,18 @@ body{
   padding:20px;
 }
 
-/* CARD STYLE */
 .card{
-  background:#ffffff;
+  background:#fff;
   padding:20px;
   border-radius:20px;
   margin-bottom:20px;
-  box-shadow:
-    0 10px 25px rgba(0,0,0,0.06),
-    0 4px 8px rgba(0,0,0,0.03);
-  transition:all .25s ease;
+  box-shadow:0 10px 25px rgba(0,0,0,0.06);
 }
 
-.card:hover{
-  transform:translateY(-2px);
-}
-
-/* FILTER */
 input[type="date"]{
-  padding:10px 12px;
+  padding:10px;
   border-radius:10px;
   border:2px solid #e5e7eb;
-  font-size:14px;
   margin-right:10px;
 }
 
@@ -71,14 +53,8 @@ button{
   color:#fff;
   font-weight:700;
   cursor:pointer;
-  box-shadow:0 6px 12px rgba(79,70,229,.3);
 }
 
-button:hover{
-  transform:translateY(-2px);
-}
-
-/* GRID KPI */
 .grid{
   display:grid;
   grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
@@ -86,26 +62,19 @@ button:hover{
 }
 
 .kpi{
-  background:linear-gradient(135deg,#f8fafc,#ffffff);
+  background:#f9fafb;
   padding:16px;
   border-radius:16px;
-  font-weight:700;
-  box-shadow:0 6px 14px rgba(0,0,0,0.05);
 }
 
 .kpi-title{
   font-size:13px;
   color:#6b7280;
-  margin-bottom:6px;
 }
 
 .kpi-value{
   font-size:20px;
   font-weight:900;
-}
-
-canvas{
-  margin-top:20px;
 }
 
 .bill{
@@ -120,9 +89,7 @@ canvas{
   display:flex;
   justify-content:space-between;
   font-weight:800;
-  margin-bottom:6px;
 }
-
 </style>
 </head>
 
@@ -132,7 +99,6 @@ canvas{
 
 <div class="container">
 
-<!-- FILTER -->
 <div class="card">
   <h3>Date Range Filter</h3>
   <input type="date" id="fromDate">
@@ -140,7 +106,6 @@ canvas{
   <button onclick="loadData()">Load</button>
 </div>
 
-<!-- KPIs -->
 <div class="card">
   <h3>Executive Summary</h3>
   <div class="grid">
@@ -149,15 +114,14 @@ canvas{
     <div class="kpi"><div class="kpi-title">Total Profit</div><div class="kpi-value">₹ <span id="totalProfit">0</span></div></div>
     <div class="kpi"><div class="kpi-title">Profit %</div><div class="kpi-value"><span id="profitPercent">0</span>%</div></div>
     <div class="kpi"><div class="kpi-title">Total Bills</div><div class="kpi-value"><span id="totalBills">0</span></div></div>
-    <div class="kpi"><div class="kpi-title">Avg Bill Value</div><div class="kpi-value">₹ <span id="avgBill">0</span></div></div>
+    <div class="kpi"><div class="kpi-title">Avg Bill</div><div class="kpi-value">₹ <span id="avgBill">0</span></div></div>
     <div class="kpi"><div class="kpi-title">Avg Profit/Bill</div><div class="kpi-value">₹ <span id="avgProfit">0</span></div></div>
     <div class="kpi"><div class="kpi-title">Best Product</div><div class="kpi-value"><span id="bestProduct">-</span></div></div>
   </div>
 </div>
 
-<!-- CHARTS -->
 <div class="card">
-  <h3>Sales & Profit Trend</h3>
+  <h3>Sales Trend</h3>
   <canvas id="salesChart"></canvas>
   <canvas id="profitChart"></canvas>
 </div>
@@ -167,7 +131,6 @@ canvas{
   <canvas id="productPie"></canvas>
 </div>
 
-<!-- BILL LIST -->
 <div class="card">
   <h3>Bills</h3>
   <div id="billList">Loading...</div>
@@ -178,7 +141,7 @@ canvas{
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, query, where, getDocs } 
+import { getFirestore, collection, getDocs } 
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 initializeApp({
@@ -188,6 +151,8 @@ initializeApp({
 });
 
 const db = getFirestore();
+
+let salesChart, profitChart, productPieChart;
 
 function getToday(){
   const n=new Date();
@@ -202,44 +167,42 @@ async function loadData(){
   const from=new Date(document.getElementById("fromDate").value+"T00:00:00");
   const to=new Date(document.getElementById("toDate").value+"T23:59:59");
 
-  const q=query(collection(db,"sales"),
-    where("createdAt",">=",from),
-    where("createdAt","<=",to)
-  );
-
-  const snap=await getDocs(q);
+  const snap=await getDocs(collection(db,"sales"));
 
   let totalSales=0,totalCost=0,totalProfit=0,totalBills=0;
   let broilerProfit=0,countryProfit=0,eggProfit=0,masalaProfit=0;
-  let daily={};
-  let bills=[];
+  let daily={}, bills=[];
 
   snap.forEach(d=>{
     const s=d.data();
+
+    const timestamp=s.createdAt || s.updatedAt;
+    if(!timestamp) return;
+
+    const dt=timestamp.toDate();
+    if(dt<from || dt>to) return;
+
     totalSales+=s.total||0;
     totalCost+=s.totalCost||0;
     totalProfit+=s.profit||0;
     totalBills++;
 
-    const dt=s.createdAt?.toDate();
-    if(dt){
-      const key=dt.toISOString().slice(0,10);
-      if(!daily[key])daily[key]={sales:0,profit:0};
-      daily[key].sales+=s.total||0;
-      daily[key].profit+=s.profit||0;
-    }
+    const key=dt.toISOString().slice(0,10);
+    if(!daily[key]) daily[key]={sales:0,profit:0};
+    daily[key].sales+=s.total||0;
+    daily[key].profit+=s.profit||0;
 
-    if(s.items?.broiler) broilerProfit+=s.items.broiler.amount - s.items.broiler.cost;
-    if(s.items?.country) countryProfit+=s.items.country.amount - s.items.country.cost;
-    if(s.items?.eggs) eggProfit+=s.items.eggs.amount - s.items.eggs.cost;
-    if(s.items?.masala) masalaProfit+=s.items.masala.amount - s.items.masala.cost;
+    if(s.items?.broiler) broilerProfit+=s.items.broiler.amount-s.items.broiler.cost;
+    if(s.items?.country) countryProfit+=s.items.country.amount-s.items.country.cost;
+    if(s.items?.eggs) eggProfit+=s.items.eggs.amount-s.items.eggs.cost;
+    if(s.items?.masala) masalaProfit+=s.items.masala.amount-s.items.masala.cost;
 
     bills.push(s);
   });
 
-  const profitPercent=totalSales? (totalProfit/totalSales*100):0;
-  const avgBill=totalBills? (totalSales/totalBills):0;
-  const avgProfit=totalBills? (totalProfit/totalBills):0;
+  const profitPercent=totalSales?(totalProfit/totalSales*100):0;
+  const avgBill=totalBills?(totalSales/totalBills):0;
+  const avgProfit=totalBills?(totalProfit/totalBills):0;
 
   const productProfits={
     Broiler:broilerProfit,
@@ -249,7 +212,7 @@ async function loadData(){
   };
 
   const best=Object.keys(productProfits)
-    .reduce((a,b)=>productProfits[a]>productProfits[b]?a:b);
+    .reduce((a,b)=>productProfits[a]>productProfits[b]?a:b,"Broiler");
 
   totalSalesEl.innerText=totalSales.toFixed(2);
   totalCostEl.innerText=totalCost.toFixed(2);
@@ -260,39 +223,42 @@ async function loadData(){
   avgProfitEl.innerText=avgProfit.toFixed(2);
   bestProductEl.innerText=best;
 
-  // Charts
   const labels=Object.keys(daily).sort();
   const salesData=labels.map(d=>daily[d].sales);
   const profitData=labels.map(d=>daily[d].profit);
 
-  new Chart(document.getElementById("salesChart"),{
+  if(salesChart) salesChart.destroy();
+  if(profitChart) profitChart.destroy();
+  if(productPieChart) productPieChart.destroy();
+
+  salesChart=new Chart(document.getElementById("salesChart"),{
     type:"line",
-    data:{labels,datasets:[{label:"Sales ₹",data:salesData,borderColor:"#4f46e5"}]}
+    data:{labels,datasets:[{label:"Sales ₹",data:salesData,borderColor:"#4f46e5",fill:false}]}
   });
 
-  new Chart(document.getElementById("profitChart"),{
+  profitChart=new Chart(document.getElementById("profitChart"),{
     type:"line",
-    data:{labels,datasets:[{label:"Profit ₹",data:profitData,borderColor:"#16a34a"}]}
+    data:{labels,datasets:[{label:"Profit ₹",data:profitData,borderColor:"#16a34a",fill:false}]}
   });
 
-  new Chart(document.getElementById("productPie"),{
+  productPieChart=new Chart(document.getElementById("productPie"),{
     type:"pie",
-    data:{
-      labels:["Broiler","Country","Eggs","Masala"],
-      datasets:[{data:[broilerProfit,countryProfit,eggProfit,masalaProfit]}]
-    }
+    data:{labels:["Broiler","Country","Eggs","Masala"],
+    datasets:[{data:[broilerProfit,countryProfit,eggProfit,masalaProfit]}]}
   });
 
   const list=document.getElementById("billList");
   if(bills.length===0){list.innerHTML="No Sales";return;}
-  list.innerHTML=bills.map(s=>`
+  list.innerHTML=bills.map(s=>{
+    const ts=s.createdAt||s.updatedAt;
+    return `
     <div class="bill">
       <div class="bill-head">
-        <span>${s.createdAt?.toDate().toLocaleString()} | ${s.payment?.toUpperCase()}</span>
+        <span>${ts?.toDate().toLocaleString()} | ${s.payment?.toUpperCase()}</span>
         <span>₹${s.total}</span>
       </div>
-    </div>
-  `).join("");
+    </div>`;
+  }).join("");
 }
 
 const totalSalesEl=document.getElementById("totalSales");
