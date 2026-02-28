@@ -476,7 +476,29 @@ createdAt:serverTimestamp()
 });
 
 alert("Sale saved");
-location.reload();
+
+// Reset only billing fields
+active = {broiler:false,country:false,egg:false,masala:false};
+
+document.querySelectorAll(".btn").forEach(b=>b.classList.remove("active"));
+document.querySelectorAll(".card[id$='Box']").forEach(b=>b.style.display="none");
+
+broilerKg.value="";
+broilerRs.value="";
+countryKg.value="";
+countryRs.value="";
+eggQty.value="";
+masalaAmt.value="";
+received.value="";
+
+payment=null;
+total.innerText="0.00";
+returnAmt.innerText="0.00";
+returnBox.style.display="none";
+received.style.display="none";
+
+// Reload today sales list only
+loadTodaySales();
 
 }catch(e){
 alert(e.message);
