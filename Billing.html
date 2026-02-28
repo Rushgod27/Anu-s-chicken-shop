@@ -129,9 +129,9 @@ input{
 <div class="card">
 <h3>Today’s Prices</h3>
 <div class="row">
-<input id="broilerPrice" readonly>
-<input id="countryPrice" readonly>
-<input id="eggPrice" readonly>
+<input id="broilerPrice">
+<input id="countryPrice">
+<input id="eggPrice">
 </div>
 <button class="primary" onclick="savePrices()">Save Prices</button>
 </div>
@@ -238,7 +238,12 @@ projectId:"anus-chicken-shop"
 });
 
 const db=getFirestore();
-const today=new Date().toISOString().slice(0,10);
+const now = new Date();
+
+const today =
+  now.getFullYear() + "-" +
+  String(now.getMonth()+1).padStart(2,"0") + "-" +
+  String(now.getDate()).padStart(2,"0");
 
 let activeInput=null,payment=null;
 let active={broiler:false,country:false,egg:false,masala:false};
@@ -504,25 +509,58 @@ loadTodaySales();
 alert(e.message);
 }
 };
+
+window.savePrices = async () => {
+  try {
+
+    if(!broilerPrice.value || !countryPrice.value || !eggPrice.value){
+      alert("Enter all prices");
+      return;
+    }
+
+    await addDoc(collection(db,"dailyPrices"),{
+      date: today,
+      broilerPrice: +broilerPrice.value,
+      countryPrice: +countryPrice.value,
+      eggPrice: +eggPrice.value,
+      updatedAtMs: Date.now(),
+      createdAt: serverTimestamp()
+    });
+
+    alert("Prices saved successfully");
+    loadTodayPrices(); // reload prices immediately
+
+  } catch (e){
+    alert("Error: " + e.message);
+  }
+};
+
+
 async function loadTodayPrices(){
-  const snap = await getDocs(collection(db,"dailyPrices"));
+
+  const q = query(
+    collection(db,"dailyPrices"),
+    where("date","==",today)
+  );
+
+  const snap = await getDocs(q);
+
   let latest = null;
 
   snap.forEach(doc=>{
     const d = doc.data();
-    if(d.date === today){
-      if(!latest || (d.updatedAtMs && d.updatedAtMs > latest.updatedAtMs)){
-        latest = d;
-      }
+    if(!latest || (d.updatedAtMs && d.updatedAtMs > latest.updatedAtMs)){
+      latest = d;
     }
   });
 
   if(latest){
-    broilerPrice.value = latest.broilerPrice || "";
-    countryPrice.value = latest.countryPrice || "";
-    eggPrice.value = latest.eggPrice || "";
+    broilerPrice.value = latest.broilerPrice ?? "";
+    countryPrice.value = latest.countryPrice ?? "";
+    eggPrice.value = latest.eggPrice ?? "";
   }
 }
+
 
 
 async function deductStock(type, quantity){
