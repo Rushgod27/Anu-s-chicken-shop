@@ -18,7 +18,7 @@ body{
   background:linear-gradient(135deg,#111827,#1f2937);
   color:#fff;
   padding:18px;
-  font-size:24px;
+  font-size:22px;
   font-weight:900;
   text-align:center;
 }
@@ -32,22 +32,22 @@ body{
 .card{
   background:#fff;
   padding:20px;
-  border-radius:20px;
+  border-radius:18px;
   margin-bottom:20px;
-  box-shadow:0 8px 20px rgba(0,0,0,0.06);
+  box-shadow:0 6px 18px rgba(0,0,0,0.06);
 }
 
 input[type="date"]{
-  padding:10px;
-  border-radius:8px;
+  padding:8px 10px;
+  border-radius:6px;
   border:1px solid #ddd;
   margin-right:10px;
 }
 
 button{
-  padding:10px 16px;
+  padding:8px 14px;
   border:none;
-  border-radius:8px;
+  border-radius:6px;
   background:#4f46e5;
   color:white;
   font-weight:700;
@@ -62,7 +62,7 @@ button{
 
 .kpi{
   background:#f9fafb;
-  padding:15px;
+  padding:14px;
   border-radius:12px;
 }
 
@@ -77,7 +77,7 @@ button{
 }
 
 .bill{
-  background:#f9fafb;
+  background:#f8fafc;
   padding:12px;
   border-radius:10px;
   margin-bottom:10px;
@@ -162,92 +162,80 @@ toDate.value=todayLocal();
 
 async function loadData(){
 
-  const from=new Date(fromDate.value+"T00:00:00");
-  const to=new Date(toDate.value+"T23:59:59");
+  const from = fromDate.value;
+  const to   = toDate.value;
 
-  const fromMillis=from.getTime();
-  const toMillis=to.getTime();
-
-  const snap=await getDocs(collection(db,"sales"));
+  const snap = await getDocs(collection(db,"sales"));
 
   let totalSales=0,totalCost=0,totalProfit=0,totalBills=0;
   let broilerProfit=0,countryProfit=0,eggProfit=0,masalaProfit=0;
   let daily={}, bills=[];
 
   snap.forEach(doc=>{
-    const s=doc.data();
-    const ts=s.createdAt||s.updatedAt;
-    if(!ts) return;
+    const s = doc.data();
 
-    const dt=ts.toDate();
-    const dtMillis=dt.getTime();
+    // ✅ FILTER USING DATE STRING (NO TIMEZONE ISSUE)
+    if(s.date < from || s.date > to) return;
 
-    if(dtMillis<fromMillis || dtMillis>toMillis) return;
-
-    totalSales+=s.total||0;
-    totalCost+=s.totalCost||0;
-    totalProfit+=s.profit||0;
+    totalSales += s.total || 0;
+    totalCost  += s.totalCost || 0;
+    totalProfit += s.profit || 0;
     totalBills++;
 
-    const key=
-      dt.getFullYear()+"-"+
-      String(dt.getMonth()+1).padStart(2,"0")+"-"+
-      String(dt.getDate()).padStart(2,"0");
+    if(!daily[s.date]) daily[s.date]={sales:0,profit:0};
+    daily[s.date].sales += s.total || 0;
+    daily[s.date].profit += s.profit || 0;
 
-    if(!daily[key]) daily[key]={sales:0,profit:0};
-    daily[key].sales+=s.total||0;
-    daily[key].profit+=s.profit||0;
-
-    if(s.items?.broiler) broilerProfit+=s.items.broiler.amount-s.items.broiler.cost;
-    if(s.items?.country) countryProfit+=s.items.country.amount-s.items.country.cost;
-    if(s.items?.eggs) eggProfit+=s.items.eggs.amount-s.items.eggs.cost;
-    if(s.items?.masala) masalaProfit+=s.items.masala.amount-s.items.masala.cost;
+    if(s.items?.broiler) broilerProfit += s.items.broiler.amount - s.items.broiler.cost;
+    if(s.items?.country) countryProfit += s.items.country.amount - s.items.country.cost;
+    if(s.items?.eggs) eggProfit += s.items.eggs.amount - s.items.eggs.cost;
+    if(s.items?.masala) masalaProfit += s.items.masala.amount - s.items.masala.cost;
 
     bills.push(s);
   });
 
-  const profitPercent=totalSales?(totalProfit/totalSales*100):0;
-  const avgBill=totalBills?(totalSales/totalBills):0;
-  const avgProfit=totalBills?(totalProfit/totalBills):0;
+  const profitPercent = totalSales ? (totalProfit/totalSales*100) : 0;
+  const avgBill = totalBills ? (totalSales/totalBills) : 0;
+  const avgProfit = totalBills ? (totalProfit/totalBills) : 0;
 
   const productProfits={
-    Broiler:broilerProfit,
-    Country:countryProfit,
-    Eggs:eggProfit,
-    Masala:masalaProfit
+    Broiler: broilerProfit,
+    Country: countryProfit,
+    Eggs: eggProfit,
+    Masala: masalaProfit
   };
 
-  const best=Object.keys(productProfits)
+  const best = Object.keys(productProfits)
     .reduce((a,b)=>productProfits[a]>productProfits[b]?a:b,"Broiler");
 
-  totalSalesEl.innerText=totalSales.toFixed(2);
-  totalCostEl.innerText=totalCost.toFixed(2);
-  totalProfitEl.innerText=totalProfit.toFixed(2);
-  profitPercentEl.innerText=profitPercent.toFixed(2);
-  totalBillsEl.innerText=totalBills;
-  avgBillEl.innerText=avgBill.toFixed(2);
-  avgProfitEl.innerText=avgProfit.toFixed(2);
-  bestProductEl.innerText=best;
+  totalSales.innerText = totalSales.toFixed(2);
+  totalCost.innerText = totalCost.toFixed(2);
+  totalProfit.innerText = totalProfit.toFixed(2);
+  profitPercent.innerText = profitPercent.toFixed(2);
+  totalBills.innerText = totalBills;
+  avgBill.innerText = avgBill.toFixed(2);
+  avgProfit.innerText = avgProfit.toFixed(2);
+  bestProduct.innerText = best;
 
-  const labels=Object.keys(daily).sort();
-  const salesData=labels.map(d=>daily[d].sales);
-  const profitData=labels.map(d=>daily[d].profit);
+  const labels = Object.keys(daily).sort();
+  const salesData = labels.map(d=>daily[d].sales);
+  const profitData = labels.map(d=>daily[d].profit);
 
   if(salesChart) salesChart.destroy();
   if(profitChart) profitChart.destroy();
   if(productPieChart) productPieChart.destroy();
 
-  salesChart=new Chart(salesChart=document.getElementById("salesChart"),{
+  salesChart = new Chart(document.getElementById("salesChart"),{
     type:"line",
     data:{labels,datasets:[{label:"Sales ₹",data:salesData,borderColor:"#4f46e5"}]}
   });
 
-  profitChart=new Chart(document.getElementById("profitChart"),{
+  profitChart = new Chart(document.getElementById("profitChart"),{
     type:"line",
     data:{labels,datasets:[{label:"Profit ₹",data:profitData,borderColor:"#16a34a"}]}
   });
 
-  productPieChart=new Chart(document.getElementById("productPie"),{
+  productPieChart = new Chart(document.getElementById("productPie"),{
     type:"pie",
     data:{
       labels:["Broiler","Country","Eggs","Masala"],
@@ -260,30 +248,19 @@ async function loadData(){
     return;
   }
 
-  billList.innerHTML=bills.map(s=>{
-    const ts=s.createdAt||s.updatedAt;
-    return `
+  billList.innerHTML = bills.map(s=>`
     <div class="bill">
       <div class="bill-head">
-        <span>${ts.toDate().toLocaleString()} | ${s.payment?.toUpperCase()}</span>
+        <span>${s.date} | ${s.payment?.toUpperCase()}</span>
         <span>₹${s.total}</span>
       </div>
-    </div>`;
-  }).join("");
+    </div>
+  `).join("");
 }
-
-const totalSalesEl=document.getElementById("totalSales");
-const totalCostEl=document.getElementById("totalCost");
-const totalProfitEl=document.getElementById("totalProfit");
-const profitPercentEl=document.getElementById("profitPercent");
-const totalBillsEl=document.getElementById("totalBills");
-const avgBillEl=document.getElementById("avgBill");
-const avgProfitEl=document.getElementById("avgProfit");
-const bestProductEl=document.getElementById("bestProduct");
-const billList=document.getElementById("billList");
 
 loadData();
 
 </script>
+
 </body>
 </html>
