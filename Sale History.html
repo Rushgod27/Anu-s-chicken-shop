@@ -2,108 +2,174 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Sales History</title>
+<title>Sales Intelligence Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
+
+/* ============================
+   CORPORATE ANALYTICS THEME
+============================ */
+
 body{
   margin:0;
-  font-family:system-ui;
-  background:#f1f5f9;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:linear-gradient(135deg,#eef2ff,#f8fafc);
+  color:#1f2937;
 }
+
+/* HEADER */
 .header{
-  background:#0f172a;
+  background:linear-gradient(135deg,#111827,#1f2937);
   color:#fff;
-  padding:16px;
+  padding:18px;
+  font-size:24px;
   font-weight:900;
-  font-size:22px;
   text-align:center;
+  letter-spacing:1px;
+  box-shadow:0 6px 16px rgba(0,0,0,0.25);
 }
+
 .container{
-  max-width:1200px;
+  max-width:1300px;
   margin:auto;
-  padding:16px;
+  padding:20px;
 }
+
+/* CARD STYLE */
 .card{
-  background:#fff;
-  padding:16px;
-  border-radius:16px;
-  margin-bottom:16px;
-  box-shadow:0 4px 10px rgba(0,0,0,.05);
+  background:#ffffff;
+  padding:20px;
+  border-radius:20px;
+  margin-bottom:20px;
+  box-shadow:
+    0 10px 25px rgba(0,0,0,0.06),
+    0 4px 8px rgba(0,0,0,0.03);
+  transition:all .25s ease;
 }
-.grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(180px,1fr));
-  gap:12px;
+
+.card:hover{
+  transform:translateY(-2px);
 }
-.box{
-  background:#f8fafc;
-  padding:12px;
-  border-radius:12px;
-  font-weight:800;
+
+/* FILTER */
+input[type="date"]{
+  padding:10px 12px;
+  border-radius:10px;
+  border:2px solid #e5e7eb;
+  font-size:14px;
+  margin-right:10px;
 }
-.big{ font-size:18px; }
+
 button{
-  padding:8px 16px;
+  padding:10px 16px;
   border:none;
-  border-radius:8px;
-  background:#4f46e5;
+  border-radius:10px;
+  background:linear-gradient(135deg,#4f46e5,#6366f1);
   color:#fff;
   font-weight:700;
+  cursor:pointer;
+  box-shadow:0 6px 12px rgba(79,70,229,.3);
 }
+
+button:hover{
+  transform:translateY(-2px);
+}
+
+/* GRID KPI */
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
+  gap:16px;
+}
+
+.kpi{
+  background:linear-gradient(135deg,#f8fafc,#ffffff);
+  padding:16px;
+  border-radius:16px;
+  font-weight:700;
+  box-shadow:0 6px 14px rgba(0,0,0,0.05);
+}
+
+.kpi-title{
+  font-size:13px;
+  color:#6b7280;
+  margin-bottom:6px;
+}
+
+.kpi-value{
+  font-size:20px;
+  font-weight:900;
+}
+
+canvas{
+  margin-top:20px;
+}
+
 .bill{
-  background:#f8fafc;
-  padding:12px;
-  border-radius:12px;
-  margin-bottom:10px;
+  background:#f9fafb;
+  padding:14px;
+  border-radius:14px;
+  margin-bottom:12px;
+  border-left:6px solid #4f46e5;
 }
+
 .bill-head{
   display:flex;
   justify-content:space-between;
   font-weight:800;
+  margin-bottom:6px;
 }
+
 </style>
 </head>
 
 <body>
 
-<div class="header">📊 Sales Dashboard</div>
+<div class="header">📊 Anu’s Chicken Shop – Intelligence Dashboard</div>
 
 <div class="container">
 
 <!-- FILTER -->
 <div class="card">
-  <h3>Filter Sales by Date</h3>
+  <h3>Date Range Filter</h3>
   <input type="date" id="fromDate">
   <input type="date" id="toDate">
   <button onclick="loadData()">Load</button>
 </div>
 
-<!-- SOLD SUMMARY -->
+<!-- KPIs -->
 <div class="card">
-  <h3>🔥 Sold (Date Range)</h3>
+  <h3>Executive Summary</h3>
   <div class="grid">
-    <div class="box">🐔 Broiler Sold<br><span class="big" id="broilerSold">0</span> kg</div>
-    <div class="box">🐓 Country Sold<br><span class="big" id="countrySold">0</span> kg</div>
-    <div class="box">🥚 Eggs Sold<br><span class="big" id="eggsSold">0</span></div>
-    <div class="box">🌶 Masala Sold<br>₹ <span class="big" id="masalaSold">0</span></div>
-    <div class="box">💰 Total Sales<br>₹ <span class="big" id="totalSales">0</span></div>
+    <div class="kpi"><div class="kpi-title">Total Sales</div><div class="kpi-value">₹ <span id="totalSales">0</span></div></div>
+    <div class="kpi"><div class="kpi-title">Total Cost</div><div class="kpi-value">₹ <span id="totalCost">0</span></div></div>
+    <div class="kpi"><div class="kpi-title">Total Profit</div><div class="kpi-value">₹ <span id="totalProfit">0</span></div></div>
+    <div class="kpi"><div class="kpi-title">Profit %</div><div class="kpi-value"><span id="profitPercent">0</span>%</div></div>
+    <div class="kpi"><div class="kpi-title">Total Bills</div><div class="kpi-value"><span id="totalBills">0</span></div></div>
+    <div class="kpi"><div class="kpi-title">Avg Bill Value</div><div class="kpi-value">₹ <span id="avgBill">0</span></div></div>
+    <div class="kpi"><div class="kpi-title">Avg Profit/Bill</div><div class="kpi-value">₹ <span id="avgProfit">0</span></div></div>
+    <div class="kpi"><div class="kpi-title">Best Product</div><div class="kpi-value"><span id="bestProduct">-</span></div></div>
   </div>
 </div>
 
-<!-- CURRENT STOCK -->
+<!-- CHARTS -->
 <div class="card">
-  <h3>📦 Current Stock Available (Now)</h3>
-  <div class="grid">
-    <div class="box">🐔 Broiler Left<br><span class="big" id="broilerStock">0</span> kg</div>
-    <div class="box">🐓 Country Left<br><span class="big" id="countryStock">0</span> kg</div>
-    <div class="box">🥚 Eggs Left<br><span class="big" id="eggsStock">0</span></div>
-    <div class="box">🌶 Masala Left<br>₹ <span class="big" id="masalaStock">0</span></div>
-  </div>
+  <h3>Sales & Profit Trend</h3>
+  <canvas id="salesChart"></canvas>
+  <canvas id="profitChart"></canvas>
 </div>
 
-<!-- DETAILED LIST -->
 <div class="card">
-  <h3>🧾 Bills</h3>
+  <h3>Product Profit Contribution</h3>
+  <canvas id="productPie"></canvas>
+</div>
+
+<!-- BILL LIST -->
+<div class="card">
+  <h3>Bills</h3>
   <div id="billList">Loading...</div>
 </div>
 
@@ -112,7 +178,7 @@ button{
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, getDocs } 
+import { getFirestore, collection, query, where, getDocs } 
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 initializeApp({
@@ -123,93 +189,120 @@ initializeApp({
 
 const db = getFirestore();
 
-const today = new Date().toISOString().slice(0,10);
-document.getElementById("fromDate").value = today;
-document.getElementById("toDate").value = today;
+function getToday(){
+  const n=new Date();
+  return n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0")+"-"+String(n.getDate()).padStart(2,"0");
+}
+
+document.getElementById("fromDate").value=getToday();
+document.getElementById("toDate").value=getToday();
 
 async function loadData(){
 
-  const from = document.getElementById("fromDate").value;
-  const to   = document.getElementById("toDate").value;
+  const from=new Date(document.getElementById("fromDate").value+"T00:00:00");
+  const to=new Date(document.getElementById("toDate").value+"T23:59:59");
 
-  const salesSnap = await getDocs(collection(db,"sales"));
-  const stockSnap = await getDocs(collection(db,"stock_entries"));
+  const q=query(collection(db,"sales"),
+    where("createdAt",">=",from),
+    where("createdAt","<=",to)
+  );
 
-  let broiler=0,country=0,eggs=0,masala=0,total=0;
+  const snap=await getDocs(q);
 
+  let totalSales=0,totalCost=0,totalProfit=0,totalBills=0;
+  let broilerProfit=0,countryProfit=0,eggProfit=0,masalaProfit=0;
+  let daily={};
   let bills=[];
 
-  salesSnap.forEach(d=>{
-    const s = d.data();
+  snap.forEach(d=>{
+    const s=d.data();
+    totalSales+=s.total||0;
+    totalCost+=s.totalCost||0;
+    totalProfit+=s.profit||0;
+    totalBills++;
 
-    if(s.date >= from && s.date <= to){
+    const dt=s.createdAt?.toDate();
+    if(dt){
+      const key=dt.toISOString().slice(0,10);
+      if(!daily[key])daily[key]={sales:0,profit:0};
+      daily[key].sales+=s.total||0;
+      daily[key].profit+=s.profit||0;
+    }
 
-      broiler += s.items?.broiler?.qty || 0;
-      country += s.items?.country?.qty || 0;
-      eggs    += s.items?.eggs?.qty || 0;
-      masala  += s.items?.masala?.amount || 0;
-      total   += s.total || 0;
+    if(s.items?.broiler) broilerProfit+=s.items.broiler.amount - s.items.broiler.cost;
+    if(s.items?.country) countryProfit+=s.items.country.amount - s.items.country.cost;
+    if(s.items?.eggs) eggProfit+=s.items.eggs.amount - s.items.eggs.cost;
+    if(s.items?.masala) masalaProfit+=s.items.masala.amount - s.items.masala.cost;
 
-      bills.push(s);
+    bills.push(s);
+  });
+
+  const profitPercent=totalSales? (totalProfit/totalSales*100):0;
+  const avgBill=totalBills? (totalSales/totalBills):0;
+  const avgProfit=totalBills? (totalProfit/totalBills):0;
+
+  const productProfits={
+    Broiler:broilerProfit,
+    Country:countryProfit,
+    Eggs:eggProfit,
+    Masala:masalaProfit
+  };
+
+  const best=Object.keys(productProfits)
+    .reduce((a,b)=>productProfits[a]>productProfits[b]?a:b);
+
+  totalSalesEl.innerText=totalSales.toFixed(2);
+  totalCostEl.innerText=totalCost.toFixed(2);
+  totalProfitEl.innerText=totalProfit.toFixed(2);
+  profitPercentEl.innerText=profitPercent.toFixed(2);
+  totalBillsEl.innerText=totalBills;
+  avgBillEl.innerText=avgBill.toFixed(2);
+  avgProfitEl.innerText=avgProfit.toFixed(2);
+  bestProductEl.innerText=best;
+
+  // Charts
+  const labels=Object.keys(daily).sort();
+  const salesData=labels.map(d=>daily[d].sales);
+  const profitData=labels.map(d=>daily[d].profit);
+
+  new Chart(document.getElementById("salesChart"),{
+    type:"line",
+    data:{labels,datasets:[{label:"Sales ₹",data:salesData,borderColor:"#4f46e5"}]}
+  });
+
+  new Chart(document.getElementById("profitChart"),{
+    type:"line",
+    data:{labels,datasets:[{label:"Profit ₹",data:profitData,borderColor:"#16a34a"}]}
+  });
+
+  new Chart(document.getElementById("productPie"),{
+    type:"pie",
+    data:{
+      labels:["Broiler","Country","Eggs","Masala"],
+      datasets:[{data:[broilerProfit,countryProfit,eggProfit,masalaProfit]}]
     }
   });
 
-  // Update sold section
-  broilerSold.innerText = broiler.toFixed(2);
-  countrySold.innerText = country.toFixed(2);
-  eggsSold.innerText    = eggs;
-  masalaSold.innerText  = masala.toFixed(2);
-  totalSales.innerText  = total.toFixed(2);
-
-  // STOCK SECTION (real-time)
-  let bStock=0,cStock=0,eStock=0,mStock=0;
-
-  stockSnap.forEach(d=>{
-    const s=d.data();
-
-    if(s.type==="broiler")
-      bStock += Number(s.remainingKg)||0;
-
-    if(s.type==="country")
-      cStock += Number(s.remainingKg)||0;
-
-    if(s.type==="eggs")
-      eStock += Number(s.remainingQty)||0;
-
-    if(s.type==="masala")
-      mStock += Number(s.remainingQty)||0;
-  });
-
-  broilerStock.innerText = bStock.toFixed(2);
-  countryStock.innerText = cStock.toFixed(2);
-  eggsStock.innerText    = eStock;
-  masalaStock.innerText  = mStock.toFixed(2);
-
-  // BILL LIST
-  const container=document.getElementById("billList");
-
-  if(bills.length===0){
-    container.innerHTML="No sales found.";
-    return;
-  }
-
-  container.innerHTML = bills.reverse().map(s=>`
-
+  const list=document.getElementById("billList");
+  if(bills.length===0){list.innerHTML="No Sales";return;}
+  list.innerHTML=bills.map(s=>`
     <div class="bill">
       <div class="bill-head">
-        <span>${s.date} | ${s.payment?.toUpperCase()}</span>
+        <span>${s.createdAt?.toDate().toLocaleString()} | ${s.payment?.toUpperCase()}</span>
         <span>₹${s.total}</span>
       </div>
-
-      ${s.items?.broiler?`🐔 Broiler ${s.items.broiler.qty}kg<br>`:''}
-      ${s.items?.country?`🐓 Country ${s.items.country.qty}kg<br>`:''}
-      ${s.items?.eggs?`🥚 Eggs ${s.items.eggs.qty}<br>`:''}
-      ${s.items?.masala?`🌶 Masala ₹${s.items.masala.amount}<br>`:''}
     </div>
-
   `).join("");
-
 }
+
+const totalSalesEl=document.getElementById("totalSales");
+const totalCostEl=document.getElementById("totalCost");
+const totalProfitEl=document.getElementById("totalProfit");
+const profitPercentEl=document.getElementById("profitPercent");
+const totalBillsEl=document.getElementById("totalBills");
+const avgBillEl=document.getElementById("avgBill");
+const avgProfitEl=document.getElementById("avgProfit");
+const bestProductEl=document.getElementById("bestProduct");
 
 loadData();
 
