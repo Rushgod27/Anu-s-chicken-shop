@@ -4,7 +4,6 @@
 <meta charset="UTF-8">
 <title>Sales Intelligence Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
@@ -35,36 +34,36 @@ body{
   padding:20px;
   border-radius:20px;
   margin-bottom:20px;
-  box-shadow:0 10px 25px rgba(0,0,0,0.06);
+  box-shadow:0 8px 20px rgba(0,0,0,0.06);
 }
 
 input[type="date"]{
   padding:10px;
-  border-radius:10px;
-  border:2px solid #e5e7eb;
+  border-radius:8px;
+  border:1px solid #ddd;
   margin-right:10px;
 }
 
 button{
   padding:10px 16px;
   border:none;
-  border-radius:10px;
-  background:linear-gradient(135deg,#4f46e5,#6366f1);
-  color:#fff;
+  border-radius:8px;
+  background:#4f46e5;
+  color:white;
   font-weight:700;
   cursor:pointer;
 }
 
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(190px,1fr));
-  gap:16px;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:15px;
 }
 
 .kpi{
   background:#f9fafb;
-  padding:16px;
-  border-radius:16px;
+  padding:15px;
+  border-radius:12px;
 }
 
 .kpi-title{
@@ -79,10 +78,10 @@ button{
 
 .bill{
   background:#f9fafb;
-  padding:14px;
-  border-radius:14px;
-  margin-bottom:12px;
-  border-left:6px solid #4f46e5;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:10px;
+  border-left:4px solid #4f46e5;
 }
 
 .bill-head{
@@ -121,7 +120,7 @@ button{
 </div>
 
 <div class="card">
-  <h3>Sales Trend</h3>
+  <h3>Sales & Profit Trend</h3>
   <canvas id="salesChart"></canvas>
   <canvas id="profitChart"></canvas>
 </div>
@@ -151,21 +150,23 @@ initializeApp({
 });
 
 const db = getFirestore();
-
 let salesChart, profitChart, productPieChart;
 
-function getToday(){
-  const n=new Date();
-  return n.getFullYear()+"-"+String(n.getMonth()+1).padStart(2,"0")+"-"+String(n.getDate()).padStart(2,"0");
+function todayLocal(){
+  const d=new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 }
 
-document.getElementById("fromDate").value=getToday();
-document.getElementById("toDate").value=getToday();
+fromDate.value=todayLocal();
+toDate.value=todayLocal();
 
 async function loadData(){
 
-  const from=new Date(document.getElementById("fromDate").value+"T00:00:00");
-  const to=new Date(document.getElementById("toDate").value+"T23:59:59");
+  const from=new Date(fromDate.value+"T00:00:00");
+  const to=new Date(toDate.value+"T23:59:59");
+
+  const fromMillis=from.getTime();
+  const toMillis=to.getTime();
 
   const snap=await getDocs(collection(db,"sales"));
 
@@ -173,21 +174,26 @@ async function loadData(){
   let broilerProfit=0,countryProfit=0,eggProfit=0,masalaProfit=0;
   let daily={}, bills=[];
 
-  snap.forEach(d=>{
-    const s=d.data();
+  snap.forEach(doc=>{
+    const s=doc.data();
+    const ts=s.createdAt||s.updatedAt;
+    if(!ts) return;
 
-    const timestamp=s.createdAt || s.updatedAt;
-    if(!timestamp) return;
+    const dt=ts.toDate();
+    const dtMillis=dt.getTime();
 
-    const dt=timestamp.toDate();
-    if(dt<from || dt>to) return;
+    if(dtMillis<fromMillis || dtMillis>toMillis) return;
 
     totalSales+=s.total||0;
     totalCost+=s.totalCost||0;
     totalProfit+=s.profit||0;
     totalBills++;
 
-    const key=dt.toISOString().slice(0,10);
+    const key=
+      dt.getFullYear()+"-"+
+      String(dt.getMonth()+1).padStart(2,"0")+"-"+
+      String(dt.getDate()).padStart(2,"0");
+
     if(!daily[key]) daily[key]={sales:0,profit:0};
     daily[key].sales+=s.total||0;
     daily[key].profit+=s.profit||0;
@@ -231,30 +237,35 @@ async function loadData(){
   if(profitChart) profitChart.destroy();
   if(productPieChart) productPieChart.destroy();
 
-  salesChart=new Chart(document.getElementById("salesChart"),{
+  salesChart=new Chart(salesChart=document.getElementById("salesChart"),{
     type:"line",
-    data:{labels,datasets:[{label:"Sales ₹",data:salesData,borderColor:"#4f46e5",fill:false}]}
+    data:{labels,datasets:[{label:"Sales ₹",data:salesData,borderColor:"#4f46e5"}]}
   });
 
   profitChart=new Chart(document.getElementById("profitChart"),{
     type:"line",
-    data:{labels,datasets:[{label:"Profit ₹",data:profitData,borderColor:"#16a34a",fill:false}]}
+    data:{labels,datasets:[{label:"Profit ₹",data:profitData,borderColor:"#16a34a"}]}
   });
 
   productPieChart=new Chart(document.getElementById("productPie"),{
     type:"pie",
-    data:{labels:["Broiler","Country","Eggs","Masala"],
-    datasets:[{data:[broilerProfit,countryProfit,eggProfit,masalaProfit]}]}
+    data:{
+      labels:["Broiler","Country","Eggs","Masala"],
+      datasets:[{data:[broilerProfit,countryProfit,eggProfit,masalaProfit]}]
+    }
   });
 
-  const list=document.getElementById("billList");
-  if(bills.length===0){list.innerHTML="No Sales";return;}
-  list.innerHTML=bills.map(s=>{
+  if(bills.length===0){
+    billList.innerHTML="No Sales";
+    return;
+  }
+
+  billList.innerHTML=bills.map(s=>{
     const ts=s.createdAt||s.updatedAt;
     return `
     <div class="bill">
       <div class="bill-head">
-        <span>${ts?.toDate().toLocaleString()} | ${s.payment?.toUpperCase()}</span>
+        <span>${ts.toDate().toLocaleString()} | ${s.payment?.toUpperCase()}</span>
         <span>₹${s.total}</span>
       </div>
     </div>`;
@@ -269,10 +280,10 @@ const totalBillsEl=document.getElementById("totalBills");
 const avgBillEl=document.getElementById("avgBill");
 const avgProfitEl=document.getElementById("avgProfit");
 const bestProductEl=document.getElementById("bestProduct");
+const billList=document.getElementById("billList");
 
 loadData();
 
 </script>
-
 </body>
 </html>
