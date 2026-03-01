@@ -2,96 +2,127 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Enterprise Owner Panel</title>
+<title>Sales Intelligence Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 body{
   margin:0;
-  font-family:system-ui;
-  background:#f1f5f9;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:linear-gradient(135deg,#eef2ff,#f8fafc);
 }
+
 .header{
-  background:#111827;
+  background:linear-gradient(135deg,#111827,#1f2937);
   color:#fff;
   padding:18px;
   font-size:22px;
   font-weight:900;
   text-align:center;
 }
-.container{
-  max-width:1200px;
-  margin:auto;
-  padding:16px;
-}
+
+.container{max-width:1300px;margin:auto;padding:20px}
+
 .card{
   background:#fff;
-  padding:18px;
-  border-radius:16px;
-  margin-bottom:16px;
-  box-shadow:0 4px 10px rgba(0,0,0,.05);
+  padding:20px;
+  border-radius:18px;
+  margin-bottom:20px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.06);
 }
+
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-  gap:12px;
+  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  gap:15px;
 }
-.box{
+
+.kpi{
+  background:#f9fafb;
+  padding:14px;
+  border-radius:12px;
+}
+
+.kpi-title{font-size:13px;color:#6b7280}
+.kpi-value{font-size:20px;font-weight:900}
+
+.bill{
   background:#f8fafc;
   padding:12px;
-  border-radius:12px;
+  border-radius:10px;
+  margin-bottom:10px;
+  border-left:4px solid #4f46e5;
+}
+
+.bill-head{
+  display:flex;
+  justify-content:space-between;
   font-weight:800;
 }
-.big{font-size:18px}
-.red{color:#dc2626}
-.green{color:#16a34a}
 </style>
 </head>
 
 <body>
 
-<div class="header">🏢 Enterprise Owner Control Panel</div>
+<div class="header">📊 Anu’s Chicken Shop – Business Intelligence</div>
 
 <div class="container">
 
 <div class="card">
-<h3>🟢 Today Performance</h3>
-<div class="grid">
-<div class="box">Revenue ₹ <span id="todayRevenue">0</span></div>
-<div class="box">COGS ₹ <span id="todayCOGS">0</span></div>
-<div class="box green">Gross Profit ₹ <span id="todayProfit">0</span></div>
-<div class="box">Bills <span id="todayBills">0</span></div>
-<div class="box">Avg Bill ₹ <span id="avgBill">0</span></div>
-<div class="box">Profit % <span id="profitPercent">0</span>%</div>
-</div>
+  <h3>Date Range Filter</h3>
+  <input type="date" id="fromDate">
+  <input type="date" id="toDate">
+  <button id="loadBtn">Load</button>
 </div>
 
 <div class="card">
-<h3>🟡 Month Overview</h3>
-<div class="grid">
-<div class="box">Revenue ₹ <span id="monthRevenue">0</span></div>
-<div class="box">COGS ₹ <span id="monthCOGS">0</span></div>
-<div class="box green">Gross ₹ <span id="monthProfit">0</span></div>
-<div class="box red">Expenses ₹ <span id="monthExpense">0</span></div>
-<div class="box">Net Real ₹ <span id="monthNet">0</span></div>
-</div>
+  <h3>Executive Summary</h3>
+  <div class="grid">
+
+    <div class="kpi">
+      <div class="kpi-title">Broiler (kg)</div>
+      <div>Sold: <b id="broilerSold">0</b></div>
+      <div>Available: <b id="broilerAvailable">0</b></div>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-title">Country (kg)</div>
+      <div>Sold: <b id="countrySold">0</b></div>
+      <div>Available: <b id="countryAvailable">0</b></div>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-title">Eggs</div>
+      <div>Sold: <b id="eggSold">0</b></div>
+      <div>Available: <b id="eggAvailable">0</b></div>
+    </div>
+
+    <div class="kpi">
+      <div class="kpi-title">Masala</div>
+      <div>Sold ₹: <b id="masalaSold">0</b></div>
+      <div>Available: <b id="masalaAvailable">0</b></div>
+    </div>
+
+  </div>
 </div>
 
 <div class="card">
-<h3>🔵 Inventory Intelligence</h3>
-<div class="grid">
-<div class="box">Stock Cost ₹ <span id="inventoryCost">0</span></div>
-<div class="box">Est Sell ₹ <span id="inventorySell">0</span></div>
-<div class="box green">Potential Profit ₹ <span id="inventoryProfit">0</span></div>
-</div>
+  <h3>Financial Overview</h3>
+  <div class="grid">
+    <div class="kpi"><div>Total Sales</div><div class="kpi-value">₹ <span id="totalSales">0</span></div></div>
+    <div class="kpi"><div>Total Profit</div><div class="kpi-value">₹ <span id="totalProfit">0</span></div></div>
+  </div>
 </div>
 
 <div class="card">
-<h3>🔴 Adjustments Insight</h3>
-<div class="grid">
-<div class="box">Positive Adj <span id="posAdj">0</span></div>
-<div class="box">Negative Adj <span id="negAdj">0</span></div>
-<div class="box red">Shrinkage ₹ <span id="shrinkage">0</span></div>
+  <h3>Product Profit Contribution</h3>
+  <canvas id="productPie"></canvas>
 </div>
+
+<div class="card">
+  <h3>Bills</h3>
+  <div id="billList">Loading...</div>
 </div>
 
 </div>
@@ -103,81 +134,107 @@ import { getFirestore, collection, getDocs }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 initializeApp({
-apiKey:"AIzaSyComVLxo36wvogoBFEoWyea-_yESW9BIPU",
-authDomain:"anus-chicken-shop.firebaseapp.com",
-projectId:"anus-chicken-shop"
+  apiKey:"AIzaSyComVLxo36wvogoBFEoWyea-_yESW9BIPU",
+  authDomain:"anus-chicken-shop.firebaseapp.com",
+  projectId:"anus-chicken-shop"
 });
 
 const db=getFirestore();
-const today=new Date().toISOString().slice(0,10);
-const now=new Date();
-const month=now.getMonth();
-const year=now.getFullYear();
+let productPieChart=null;
+
+function today(){
+  const d=new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+}
+
+document.getElementById("fromDate").value=today();
+document.getElementById("toDate").value=today();
+document.getElementById("loadBtn").addEventListener("click",loadData);
 
 async function loadData(){
 
-const sales=await getDocs(collection(db,"sales"));
-const stock=await getDocs(collection(db,"stock_entries"));
-const expenses=await getDocs(collection(db,"expenses"));
-const adjustments=await getDocs(collection(db,"stock_adjustments"));
+  const from=document.getElementById("fromDate").value;
+  const to=document.getElementById("toDate").value;
 
-let todayRevenue=0, todayCOGS=0, todayBills=0;
-let monthRevenue=0, monthCOGS=0;
-let inventoryCost=0, inventorySell=0;
-let monthExpense=0;
-let pos=0,neg=0;
+  const salesSnap=await getDocs(collection(db,"sales"));
+  const stockSnap=await getDocs(collection(db,"stock_entries"));
 
-sales.forEach(d=>{
-const s=d.data();
-if(s.date===today){
-todayRevenue+=s.total||0;
-todayBills++;
-}
-if(new Date(s.date).getMonth()===month){
-monthRevenue+=s.total||0;
-}
-});
+  let totalSales=0,totalProfit=0;
+  let broilerSold=0,countrySold=0,eggSold=0,masalaSold=0;
+  let broilerProfit=0,countryProfit=0,eggProfit=0,masalaProfit=0;
 
-stock.forEach(d=>{
-const s=d.data();
-if(s.remainingKg){
-inventoryCost += s.remainingKg*(s.costPerSellableKg||0);
-}
-if(s.remainingQty){
-inventoryCost += s.remainingQty*(s.costPerUnit||0);
-}
-});
+  salesSnap.forEach(doc=>{
+    const s=doc.data();
+    if(!s.date) return;
+    if(s.date<from || s.date>to) return;
 
-expenses.forEach(d=>{
-const e=d.data();
-if(new Date(e.date).getMonth()===month){
-monthExpense+=e.amount||0;
-}
-});
+    totalSales+=Number(s.total)||0;
+    totalProfit+=Number(s.profit)||0;
 
-adjustments.forEach(d=>{
-const a=d.data();
-if(a.type==="positive") pos+=a.quantity||0;
-if(a.type==="negative") neg+=a.quantity||0;
-});
+    if(s.items?.broiler){
+      broilerSold+=Number(s.items.broiler.qty)||0;
+      broilerProfit+=Number(s.items.broiler.amount||0)-Number(s.items.broiler.cost||0);
+    }
 
-document.getElementById("todayRevenue").innerText=todayRevenue.toFixed(2);
-document.getElementById("todayBills").innerText=todayBills;
-document.getElementById("avgBill").innerText=
-(todayBills? todayRevenue/todayBills:0).toFixed(2);
+    if(s.items?.country){
+      countrySold+=Number(s.items.country.qty)||0;
+      countryProfit+=Number(s.items.country.amount||0)-Number(s.items.country.cost||0);
+    }
 
-document.getElementById("monthRevenue").innerText=monthRevenue.toFixed(2);
-document.getElementById("inventoryCost").innerText=inventoryCost.toFixed(2);
-document.getElementById("monthExpense").innerText=monthExpense.toFixed(2);
+    if(s.items?.eggs){
+      eggSold+=Number(s.items.eggs.qty)||0;
+      eggProfit+=Number(s.items.eggs.amount||0)-Number(s.items.eggs.cost||0);
+    }
 
-document.getElementById("posAdj").innerText=pos.toFixed(2);
-document.getElementById("negAdj").innerText=neg.toFixed(2);
+    if(s.items?.masala){
+      masalaSold+=Number(s.items.masala.amount)||0;
+      masalaProfit+=Number(s.items.masala.amount||0)-Number(s.items.masala.cost||0);
+    }
+  });
+
+  let broilerAvailable=0,countryAvailable=0,eggAvailable=0,masalaAvailable=0;
+
+  stockSnap.forEach(doc=>{
+    const s=doc.data();
+
+    if(s.type==="broiler") broilerAvailable+=Number(s.remainingKg)||0;
+    if(s.type==="country") countryAvailable+=Number(s.remainingKg)||0;
+    if(s.type==="eggs") eggAvailable+=Number(s.remainingQty)||0;
+    if(s.type==="masala") masalaAvailable+=Number(s.remainingQty)||0;
+  });
+
+  // Update UI
+  document.getElementById("totalSales").innerText=totalSales.toFixed(2);
+  document.getElementById("totalProfit").innerText=totalProfit.toFixed(2);
+
+  document.getElementById("broilerSold").innerText=broilerSold.toFixed(2);
+  document.getElementById("broilerAvailable").innerText=broilerAvailable.toFixed(2);
+
+  document.getElementById("countrySold").innerText=countrySold.toFixed(2);
+  document.getElementById("countryAvailable").innerText=countryAvailable.toFixed(2);
+
+  document.getElementById("eggSold").innerText=eggSold;
+  document.getElementById("eggAvailable").innerText=eggAvailable;
+
+  document.getElementById("masalaSold").innerText=masalaSold.toFixed(2);
+  document.getElementById("masalaAvailable").innerText=masalaAvailable;
+
+  if(productPieChart) productPieChart.destroy();
+
+  productPieChart=new Chart(document.getElementById("productPie"),{
+    type:"pie",
+    data:{
+      labels:["Broiler","Country","Eggs","Masala"],
+      datasets:[{
+        data:[broilerProfit,countryProfit,eggProfit,masalaProfit]
+      }]
+    }
+  });
 
 }
 
 loadData();
 
 </script>
-
 </body>
 </html>
