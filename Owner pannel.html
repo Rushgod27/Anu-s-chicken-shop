@@ -44,12 +44,10 @@ body{
   font-weight:800;
   margin-bottom:6px;
 }
-.value{font-weight:700}
 canvas{margin-top:20px}
 button{padding:6px 12px;font-weight:700}
 </style>
 </head>
-
 <body>
 
 <div class="header">📊 Anu’s Chicken Shop – Strategic Dashboard</div>
@@ -74,7 +72,7 @@ button{padding:6px 12px;font-weight:700}
       <br>
       Available (End Date): <span id="broilerAvailable">0</span> kg  
       <br>
-      Inventory Cost Value: ₹ <span id="broilerInventoryCost">0</span>
+      Inventory Value: ₹ <span id="broilerInventoryCost">0</span>
     </div>
 
     <div class="kpi">
@@ -84,7 +82,7 @@ button{padding:6px 12px;font-weight:700}
       <br>
       Available (End Date): <span id="countryAvailable">0</span> kg  
       <br>
-      Inventory Cost Value: ₹ <span id="countryInventoryCost">0</span>
+      Inventory Value: ₹ <span id="countryInventoryCost">0</span>
     </div>
 
     <div class="kpi">
@@ -156,7 +154,7 @@ window.loadData=async function(){
     masala:{soldValue:0,profit:0}
   };
 
-  // SALES
+  // ===== SALES =====
   salesSnap.forEach(doc=>{
     const s=doc.data();
     if(!s.date) return;
@@ -188,7 +186,7 @@ window.loadData=async function(){
     }
   });
 
-  // PURCHASES UNTIL END DATE
+  // ===== STOCK PURCHASES UNTIL END DATE =====
   let purchases={
     broiler:{qty:0,cost:0},
     country:{qty:0,cost:0},
@@ -201,7 +199,7 @@ window.loadData=async function(){
     if(!s.createdAt) return;
 
     const entryDate=s.createdAt.toDate();
-    if(entryDate>endDateObj) return;
+    if(entryDate > endDateObj) return;
 
     if(s.type==="broiler"){
       const qty=Number(s.sellableKg||0);
@@ -216,29 +214,27 @@ window.loadData=async function(){
     }
 
     if(s.type==="eggs"){
-      const qty=Number(s.receivedQty||0);
-      purchases.eggs.qty+=qty;
+      purchases.eggs.qty+=Number(s.receivedQty||0);
       purchases.eggs.cost+=Number(s.totalCost||0);
     }
 
     if(s.type==="masala"){
-      const qty=Number(s.receivedQty||0);
-      purchases.masala.qty+=qty;
+      purchases.masala.qty+=Number(s.receivedQty||0);
       purchases.masala.cost+=Number(s.totalCost||0);
     }
   });
 
-  // AVAILABLE
+  // ===== AVAILABLE =====
   const broilerAvailable=purchases.broiler.qty-stats.broiler.sold;
   const countryAvailable=purchases.country.qty-stats.country.sold;
   const eggAvailable=purchases.eggs.qty-stats.eggs.sold;
   const masalaAvailable=purchases.masala.qty;
 
-  // AVG COST
+  // ===== AVG COST =====
   const broilerAvg=purchases.broiler.qty? purchases.broiler.cost/purchases.broiler.qty:0;
   const countryAvg=purchases.country.qty? purchases.country.cost/purchases.country.qty:0;
 
-  // UPDATE UI
+  // ===== UPDATE UI =====
   broilerSold.innerText=stats.broiler.sold.toFixed(2);
   broilerSoldValue.innerText=stats.broiler.soldValue.toFixed(2);
   broilerAvailable.innerText=broilerAvailable.toFixed(2);
@@ -256,7 +252,7 @@ window.loadData=async function(){
   masalaSoldValue.innerText=stats.masala.soldValue.toFixed(2);
   masalaAvailable.innerText=masalaAvailable;
 
-  // CHARTS
+  // ===== CHARTS =====
   if(pieChart) pieChart.destroy();
   if(barChart) barChart.destroy();
 
@@ -295,6 +291,5 @@ window.loadData=async function(){
 
 loadData();
 </script>
-
 </body>
 </html>
