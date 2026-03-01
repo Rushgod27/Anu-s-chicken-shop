@@ -2,7 +2,7 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Sales Intelligence Dashboard</title>
+<title>Business Intelligence Dashboard</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
@@ -34,7 +34,7 @@ body{
 
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(260px,1fr));
   gap:15px;
 }
 
@@ -42,30 +42,28 @@ body{
   background:#f9fafb;
   padding:14px;
   border-radius:12px;
+  line-height:1.5;
 }
 
-.kpi-title{font-size:13px;color:#6b7280}
-.kpi-value{font-size:20px;font-weight:900}
-
-.bill{
-  background:#f8fafc;
-  padding:12px;
-  border-radius:10px;
-  margin-bottom:10px;
-  border-left:4px solid #4f46e5;
-}
-
-.bill-head{
-  display:flex;
-  justify-content:space-between;
+.kpi-title{
+  font-size:14px;
   font-weight:800;
+  margin-bottom:6px;
+}
+
+.value{
+  font-weight:700;
+}
+
+canvas{
+  margin-top:20px;
 }
 </style>
 </head>
 
 <body>
 
-<div class="header">📊 Anu’s Chicken Shop – Business Intelligence</div>
+<div class="header">📊 Anu’s Chicken Shop – Strategic Dashboard</div>
 
 <div class="container">
 
@@ -73,7 +71,7 @@ body{
   <h3>Date Range Filter</h3>
   <input type="date" id="fromDate">
   <input type="date" id="toDate">
-  <button id="loadBtn">Load</button>
+  <button onclick="loadData()">Load</button>
 </div>
 
 <div class="card">
@@ -81,48 +79,51 @@ body{
   <div class="grid">
 
     <div class="kpi">
-      <div class="kpi-title">Broiler (kg)</div>
-      <div>Sold: <b id="broilerSold">0</b></div>
-      <div>Available: <b id="broilerAvailable">0</b></div>
+      <div class="kpi-title">🐔 Broiler</div>
+      Sold: <span class="value" id="broilerSold">0</span> kg  
+      (₹ <span class="value" id="broilerSoldValue">0</span>)  
+      <br>
+      Available (End Date): <span class="value" id="broilerAvailable">0</span> kg  
+      <br>
+      Inventory Cost Value: ₹ <span class="value" id="broilerInventoryCost">0</span>
     </div>
 
     <div class="kpi">
-      <div class="kpi-title">Country (kg)</div>
-      <div>Sold: <b id="countrySold">0</b></div>
-      <div>Available: <b id="countryAvailable">0</b></div>
+      <div class="kpi-title">🐓 Country</div>
+      Sold: <span class="value" id="countrySold">0</span> kg  
+      (₹ <span class="value" id="countrySoldValue">0</span>)  
+      <br>
+      Available (End Date): <span class="value" id="countryAvailable">0</span> kg  
+      <br>
+      Inventory Cost Value: ₹ <span class="value" id="countryInventoryCost">0</span>
     </div>
 
     <div class="kpi">
-      <div class="kpi-title">Eggs</div>
-      <div>Sold: <b id="eggSold">0</b></div>
-      <div>Available: <b id="eggAvailable">0</b></div>
+      <div class="kpi-title">🥚 Eggs</div>
+      Sold: <span class="value" id="eggSold">0</span>  
+      (₹ <span class="value" id="eggSoldValue">0</span>)  
+      <br>
+      Available (End Date): <span class="value" id="eggAvailable">0</span>
     </div>
 
     <div class="kpi">
-      <div class="kpi-title">Masala</div>
-      <div>Sold ₹: <b id="masalaSold">0</b></div>
-      <div>Available: <b id="masalaAvailable">0</b></div>
+      <div class="kpi-title">🌶 Masala</div>
+      Sold: ₹ <span class="value" id="masalaSoldValue">0</span>  
+      <br>
+      Available (End Date): <span class="value" id="masalaAvailable">0</span>
     </div>
 
   </div>
 </div>
 
 <div class="card">
-  <h3>Financial Overview</h3>
-  <div class="grid">
-    <div class="kpi"><div>Total Sales</div><div class="kpi-value">₹ <span id="totalSales">0</span></div></div>
-    <div class="kpi"><div>Total Profit</div><div class="kpi-value">₹ <span id="totalProfit">0</span></div></div>
-  </div>
+  <h3>Profit Contribution (Pie)</h3>
+  <canvas id="pieChart"></canvas>
 </div>
 
 <div class="card">
-  <h3>Product Profit Contribution</h3>
-  <canvas id="productPie"></canvas>
-</div>
-
-<div class="card">
-  <h3>Bills</h3>
-  <div id="billList">Loading...</div>
+  <h3>Profit / Loss Comparison</h3>
+  <canvas id="barChart"></canvas>
 </div>
 
 </div>
@@ -140,101 +141,139 @@ initializeApp({
 });
 
 const db=getFirestore();
-let productPieChart=null;
+
+let pieChart=null;
+let barChart=null;
 
 function today(){
   const d=new Date();
   return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 }
 
-document.getElementById("fromDate").value=today();
-document.getElementById("toDate").value=today();
-document.getElementById("loadBtn").addEventListener("click",loadData);
+fromDate.value=today();
+toDate.value=today();
 
-async function loadData(){
+window.loadData=async function(){
 
-  const from=document.getElementById("fromDate").value;
-  const to=document.getElementById("toDate").value;
+  const from=fromDate.value;
+  const to=toDate.value;
 
   const salesSnap=await getDocs(collection(db,"sales"));
   const stockSnap=await getDocs(collection(db,"stock_entries"));
 
-  let totalSales=0,totalProfit=0;
-  let broilerSold=0,countrySold=0,eggSold=0,masalaSold=0;
-  let broilerProfit=0,countryProfit=0,eggProfit=0,masalaProfit=0;
+  let stats={
+    broiler:{sold:0,soldValue:0,profit:0,stockIn:0},
+    country:{sold:0,soldValue:0,profit:0,stockIn:0},
+    eggs:{sold:0,soldValue:0,profit:0,stockIn:0},
+    masala:{soldValue:0,profit:0,stockIn:0}
+  };
 
+  // SALES FILTER
   salesSnap.forEach(doc=>{
     const s=doc.data();
     if(!s.date) return;
-    if(s.date<from || s.date>to) return;
+    if(s.date>to) return;
 
-    totalSales+=Number(s.total)||0;
-    totalProfit+=Number(s.profit)||0;
+    if(s.date>=from && s.date<=to){
 
-    if(s.items?.broiler){
-      broilerSold+=Number(s.items.broiler.qty)||0;
-      broilerProfit+=Number(s.items.broiler.amount||0)-Number(s.items.broiler.cost||0);
-    }
+      if(s.items?.broiler){
+        stats.broiler.sold+=Number(s.items.broiler.qty)||0;
+        stats.broiler.soldValue+=Number(s.items.broiler.amount)||0;
+        stats.broiler.profit+=Number(s.items.broiler.amount||0)-Number(s.items.broiler.cost||0);
+      }
 
-    if(s.items?.country){
-      countrySold+=Number(s.items.country.qty)||0;
-      countryProfit+=Number(s.items.country.amount||0)-Number(s.items.country.cost||0);
-    }
+      if(s.items?.country){
+        stats.country.sold+=Number(s.items.country.qty)||0;
+        stats.country.soldValue+=Number(s.items.country.amount)||0;
+        stats.country.profit+=Number(s.items.country.amount||0)-Number(s.items.country.cost||0);
+      }
 
-    if(s.items?.eggs){
-      eggSold+=Number(s.items.eggs.qty)||0;
-      eggProfit+=Number(s.items.eggs.amount||0)-Number(s.items.eggs.cost||0);
-    }
+      if(s.items?.eggs){
+        stats.eggs.sold+=Number(s.items.eggs.qty)||0;
+        stats.eggs.soldValue+=Number(s.items.eggs.amount)||0;
+        stats.eggs.profit+=Number(s.items.eggs.amount||0)-Number(s.items.eggs.cost||0);
+      }
 
-    if(s.items?.masala){
-      masalaSold+=Number(s.items.masala.amount)||0;
-      masalaProfit+=Number(s.items.masala.amount||0)-Number(s.items.masala.cost||0);
+      if(s.items?.masala){
+        stats.masala.soldValue+=Number(s.items.masala.amount)||0;
+        stats.masala.profit+=Number(s.items.masala.amount||0)-Number(s.items.masala.cost||0);
+      }
     }
   });
 
-  let broilerAvailable=0,countryAvailable=0,eggAvailable=0,masalaAvailable=0;
-
+  // STOCK UNTIL END DATE
   stockSnap.forEach(doc=>{
     const s=doc.data();
+    if(!s.date || s.date>to) return;
 
-    if(s.type==="broiler") broilerAvailable+=Number(s.remainingKg)||0;
-    if(s.type==="country") countryAvailable+=Number(s.remainingKg)||0;
-    if(s.type==="eggs") eggAvailable+=Number(s.remainingQty)||0;
-    if(s.type==="masala") masalaAvailable+=Number(s.remainingQty)||0;
+    if(s.type==="broiler") stats.broiler.stockIn+=Number(s.totalKg||0);
+    if(s.type==="country") stats.country.stockIn+=Number(s.totalKg||0);
+    if(s.type==="eggs") stats.eggs.stockIn+=Number(s.totalQty||0);
+    if(s.type==="masala") stats.masala.stockIn+=Number(s.totalQty||0);
   });
 
-  // Update UI
-  document.getElementById("totalSales").innerText=totalSales.toFixed(2);
-  document.getElementById("totalProfit").innerText=totalProfit.toFixed(2);
+  // AVAILABLE
+  const broilerAvailable=stats.broiler.stockIn-stats.broiler.sold;
+  const countryAvailable=stats.country.stockIn-stats.country.sold;
+  const eggAvailable=stats.eggs.stockIn-stats.eggs.sold;
 
-  document.getElementById("broilerSold").innerText=broilerSold.toFixed(2);
-  document.getElementById("broilerAvailable").innerText=broilerAvailable.toFixed(2);
+  // UPDATE UI
+  broilerSold.innerText=stats.broiler.sold.toFixed(2);
+  broilerSoldValue.innerText=stats.broiler.soldValue.toFixed(2);
+  broilerAvailable.innerText=broilerAvailable.toFixed(2);
+  broilerInventoryCost.innerText=(broilerAvailable*200).toFixed(2);
 
-  document.getElementById("countrySold").innerText=countrySold.toFixed(2);
-  document.getElementById("countryAvailable").innerText=countryAvailable.toFixed(2);
+  countrySold.innerText=stats.country.sold.toFixed(2);
+  countrySoldValue.innerText=stats.country.soldValue.toFixed(2);
+  countryAvailable.innerText=countryAvailable.toFixed(2);
+  countryInventoryCost.innerText=(countryAvailable*250).toFixed(2);
 
-  document.getElementById("eggSold").innerText=eggSold;
-  document.getElementById("eggAvailable").innerText=eggAvailable;
+  eggSold.innerText=stats.eggs.sold;
+  eggSoldValue.innerText=stats.eggs.soldValue.toFixed(2);
+  eggAvailable.innerText=eggAvailable;
 
-  document.getElementById("masalaSold").innerText=masalaSold.toFixed(2);
-  document.getElementById("masalaAvailable").innerText=masalaAvailable;
+  masalaSoldValue.innerText=stats.masala.soldValue.toFixed(2);
+  masalaAvailable.innerText=stats.masala.stockIn;
 
-  if(productPieChart) productPieChart.destroy();
+  // CHARTS
+  if(pieChart) pieChart.destroy();
+  if(barChart) barChart.destroy();
 
-  productPieChart=new Chart(document.getElementById("productPie"),{
+  pieChart=new Chart(pieChartCanvas,{
     type:"pie",
     data:{
       labels:["Broiler","Country","Eggs","Masala"],
       datasets:[{
-        data:[broilerProfit,countryProfit,eggProfit,masalaProfit]
+        data:[
+          stats.broiler.profit,
+          stats.country.profit,
+          stats.eggs.profit,
+          stats.masala.profit
+        ]
       }]
     }
   });
 
-}
+  barChart=new Chart(barChartCanvas,{
+    type:"bar",
+    data:{
+      labels:["Broiler","Country","Eggs","Masala"],
+      datasets:[{
+        label:"Profit / Loss ₹",
+        data:[
+          stats.broiler.profit,
+          stats.country.profit,
+          stats.eggs.profit,
+          stats.masala.profit
+        ]
+      }]
+    }
+  });
+
+};
 
 loadData();
-
 </script>
+
 </body>
 </html>
