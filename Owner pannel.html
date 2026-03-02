@@ -147,33 +147,40 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebas
 import { getFirestore, collection, getDocs } 
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
-initializeApp({
+const firebaseConfig = {
   apiKey:"AIzaSyComVLxo36wvogoBFEoWyea-_yESW9BIPU",
   authDomain:"anus-chicken-shop.firebaseapp.com",
   projectId:"anus-chicken-shop"
-});
+};
 
-const db = getFirestore();
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
-let salesChart = null;
-let productPieChart = null;
+let mergedChart = null;
+let pieChart = null;
 
 function todayLocal(){
   const d = new Date();
-  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
+  return d.toISOString().slice(0,10);
 }
 
-fromDate.value = todayLocal();
-toDate.value = todayLocal();
+document.getElementById("fromDate").value = todayLocal();
+document.getElementById("toDate").value = todayLocal();
 
-loadBtn.addEventListener("click", loadData);
+document.getElementById("loadBtn").addEventListener("click", loadData);
 
 async function loadData(){
 
-  const from = fromDate.value;
-  const to   = toDate.value;
+  console.log("Loading data...");
+
+  const from = document.getElementById("fromDate").value;
+  const to   = document.getElementById("toDate").value;
+
+  console.log("Date Range:", from, "to", to);
 
   const snap = await getDocs(collection(db,"sales"));
+
+  console.log("Total sales documents:", snap.size);
 
   let totalSales = 0;
   let totalCost = 0;
@@ -186,7 +193,9 @@ async function loadData(){
 
   snap.forEach(doc=>{
     const s = doc.data();
+
     if(!s.date) return;
+
     if(s.date < from || s.date > to) return;
 
     totalSales += Number(s.total || 0);
@@ -194,14 +203,23 @@ async function loadData(){
     totalProfit += Number(s.profit || 0);
     totalBills++;
 
-    if(!daily[s.date]) daily[s.date]={sales:0,profit:0};
+    if(!daily[s.date])
+      daily[s.date]={sales:0,profit:0};
+
     daily[s.date].sales += Number(s.total || 0);
     daily[s.date].profit += Number(s.profit || 0);
 
-    if(s.items?.broiler) broilerProfit += Number(s.items.broiler.amount) - Number(s.items.broiler.cost);
-    if(s.items?.country) countryProfit += Number(s.items.country.amount) - Number(s.items.country.cost);
-    if(s.items?.eggs) eggProfit += Number(s.items.eggs.amount) - Number(s.items.eggs.cost);
-    if(s.items?.masala) masalaProfit += Number(s.items.masala.amount) - Number(s.items.masala.cost);
+    if(s.items?.broiler)
+      broilerProfit += (Number(s.items.broiler.amount||0) - Number(s.items.broiler.cost||0));
+
+    if(s.items?.country)
+      countryProfit += (Number(s.items.country.amount||0) - Number(s.items.country.cost||0));
+
+    if(s.items?.eggs)
+      eggProfit += (Number(s.items.eggs.amount||0) - Number(s.items.eggs.cost||0));
+
+    if(s.items?.masala)
+      masalaProfit += (Number(s.items.masala.amount||0) - Number(s.items.masala.cost||0));
 
     bills.push(s);
   });
@@ -218,22 +236,24 @@ async function loadData(){
   const best = Object.keys(productProfits)
     .reduce((a,b)=>productProfits[a]>productProfits[b]?a:b,"Broiler");
 
-  totalSales.innerText = totalSales.toFixed(2);
-  totalCost.innerText = totalCost.toFixed(2);
-  totalProfit.innerText = totalProfit.toFixed(2);
-  profitPercent.innerText = profitPercent.toFixed(2);
-  totalBills.innerText = totalBills;
-  bestProduct.innerText = best;
+  // ===== UPDATE UI =====
+  document.getElementById("totalSales").innerText = totalSales.toFixed(2);
+  document.getElementById("totalCost").innerText = totalCost.toFixed(2);
+  document.getElementById("totalProfit").innerText = totalProfit.toFixed(2);
+  document.getElementById("profitPercent").innerText = profitPercent.toFixed(2);
+  document.getElementById("totalBills").innerText = totalBills;
+  document.getElementById("bestProduct").innerText = best;
+
+  // ===== CHART =====
 
   const labels = Object.keys(daily).sort();
   const salesData = labels.map(d=>daily[d].sales);
   const profitData = labels.map(d=>daily[d].profit);
 
-  if(salesChart) salesChart.destroy();
-  if(productPieChart) productPieChart.destroy();
+  if(mergedChart) mergedChart.destroy();
+  if(pieChart) pieChart.destroy();
 
-  // 🔥 MERGED GRAPH
-  salesChart = new Chart(document.getElementById("salesChart"),{
+  mergedChart = new Chart(document.getElementById("salesChart"),{
     type:"line",
     data:{
       labels: labels,
@@ -242,34 +262,34 @@ async function loadData(){
           label:"Sales ₹",
           data:salesData,
           borderColor:"#4f46e5",
-          backgroundColor:"rgba(79,70,229,0.1)",
           tension:0.3
         },
         {
           label:"Profit ₹",
           data:profitData,
           borderColor:"#16a34a",
-          backgroundColor:"rgba(22,163,74,0.1)",
           tension:0.3
         }
       ]
     },
     options:{
       responsive:true,
-      plugins:{ legend:{position:"top"} },
       scales:{ y:{ beginAtZero:true } }
     }
   });
 
-  productPieChart = new Chart(document.getElementById("productPie"),{
+  pieChart = new Chart(document.getElementById("productPie"),{
     type:"pie",
     data:{
       labels:["Broiler","Country","Eggs","Masala"],
-      datasets:[{data:[broilerProfit,countryProfit,eggProfit,masalaProfit]}]
+      datasets:[{
+        data:[broilerProfit,countryProfit,eggProfit,masalaProfit]
+      }]
     }
   });
 
   const list = document.getElementById("billList");
+
   if(bills.length===0){
     list.innerHTML="No Sales";
     return;
@@ -278,11 +298,12 @@ async function loadData(){
   list.innerHTML = bills.map(s=>`
     <div class="bill">
       <div class="bill-head">
-        <span>${s.date} | ${s.payment?.toUpperCase()}</span>
+        <span>${s.date}</span>
         <span>₹${s.total}</span>
       </div>
     </div>
   `).join("");
+
 }
 
 loadData();
