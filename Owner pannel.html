@@ -50,27 +50,33 @@ button{
 }
 .grid{
   display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(230px,1fr));
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
   gap:15px;
 }
 .kpi{
   background:#f9fafb;
-  padding:16px;
+  padding:14px;
   border-radius:12px;
 }
 .kpi-title{
   font-size:13px;
   color:#6b7280;
-  margin-bottom:6px;
 }
 .kpi-value{
   font-size:20px;
   font-weight:900;
 }
-.small{
-  font-size:14px;
-  font-weight:600;
-  color:#6b7280;
+.bill{
+  background:#f8fafc;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:10px;
+  border-left:4px solid #4f46e5;
+}
+.bill-head{
+  display:flex;
+  justify-content:space-between;
+  font-weight:800;
 }
 </style>
 </head>
@@ -81,7 +87,6 @@ button{
 
 <div class="container">
 
-<!-- Date Filter -->
 <div class="card">
   <h3>Date Range Filter</h3>
   <input type="date" id="fromDate">
@@ -89,80 +94,49 @@ button{
   <button id="loadBtn">Load</button>
 </div>
 
-<!-- Live Stock -->
-<div class="card">
-  <h3>📦 Stocks Available (Live)</h3>
-  <div class="grid">
-
-    <div class="kpi">
-      <div class="kpi-title">🐔 Broiler</div>
-      <div class="kpi-value">
-        <span id="broilerSold">0</span> /
-        <span id="broilerAvail">0</span> kg
-      </div>
-      <div class="small">Sold / Sellable</div>
-    </div>
-
-    <div class="kpi">
-      <div class="kpi-title">🐓 Country</div>
-      <div class="kpi-value">
-        <span id="countrySold">0</span> /
-        <span id="countryAvail">0</span> kg
-      </div>
-      <div class="small">Sold / Sellable</div>
-    </div>
-
-    <div class="kpi">
-      <div class="kpi-title">🥚 Eggs</div>
-      <div class="kpi-value">
-        <span id="eggSold">0</span> /
-        <span id="eggAvail">0</span>
-      </div>
-      <div class="small">Sold / Available</div>
-    </div>
-
-    <div class="kpi">
-      <div class="kpi-title">🌶 Masala</div>
-      <div class="kpi-value">
-        <span id="masalaSold">0</span> /
-        <span id="masalaAvail">0</span>
-      </div>
-      <div class="small">Sold / Available</div>
-    </div>
-
-  </div>
-</div>
-
-<!-- Executive Summary -->
 <div class="card">
   <h3>Executive Summary</h3>
   <div class="grid">
-
     <div class="kpi">
-      <div class="kpi-title">Sales & Cost</div>
+      <div class="kpi-title">Total Sales</div>
       <div class="kpi-value">₹ <span id="totalSales">0</span></div>
-      <div class="small">Cost ₹ <span id="totalCost">0</span></div>
     </div>
-
     <div class="kpi">
-      <div class="kpi-title">Collection</div>
-      <div class="kpi-value">Cash ₹ <span id="totalCash">0</span></div>
-      <div class="small">Online ₹ <span id="totalOnline">0</span></div>
+      <div class="kpi-title">Total Cost</div>
+      <div class="kpi-value">₹ <span id="totalCost">0</span></div>
     </div>
-
     <div class="kpi">
-      <div class="kpi-title">Profit</div>
+      <div class="kpi-title">Total Profit</div>
       <div class="kpi-value">₹ <span id="totalProfit">0</span></div>
-      <div class="small"><span id="profitPercent">0</span>% Margin</div>
     </div>
-
     <div class="kpi">
-      <div class="kpi-title">Business Activity</div>
-      <div class="kpi-value"><span id="totalBills">0</span> Bills</div>
-      <div class="small">Best: <span id="bestProduct">-</span></div>
+      <div class="kpi-title">Profit %</div>
+      <div class="kpi-value"><span id="profitPercent">0</span>%</div>
     </div>
-
+    <div class="kpi">
+      <div class="kpi-title">Total Bills</div>
+      <div class="kpi-value"><span id="totalBills">0</span></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Best Product</div>
+      <div class="kpi-value"><span id="bestProduct">-</span></div>
+    </div>
   </div>
+</div>
+
+<div class="card">
+  <h3>Sales & Profit Trend</h3>
+  <canvas id="salesChart"></canvas>
+</div>
+
+<div class="card">
+  <h3>Product Profit Contribution</h3>
+  <canvas id="productPie"></canvas>
+</div>
+
+<div class="card">
+  <h3>Bills</h3>
+  <div id="billList">Loading...</div>
 </div>
 
 </div>
@@ -170,7 +144,7 @@ button{
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import { getFirestore, collection, getDocs, doc, getDoc }
+import { getFirestore, collection, getDocs } 
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 initializeApp({
@@ -181,8 +155,12 @@ initializeApp({
 
 const db = getFirestore();
 
+let salesChart = null;
+let productPieChart = null;
+
 function todayLocal(){
-  return new Date().toISOString().slice(0,10);
+  const d = new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 }
 
 fromDate.value = todayLocal();
@@ -195,78 +173,121 @@ async function loadData(){
   const from = fromDate.value;
   const to   = toDate.value;
 
-  /* ========== LIVE STOCK ========== */
-
-  const liveSnap = await getDoc(doc(db,"stock_current","live"));
-  if(liveSnap.exists()){
-    const live = liveSnap.data();
-
-    broilerSold.innerText  = live.broiler?.soldKg ?? 0;
-    broilerAvail.innerText = live.broiler?.availableKg ?? 0;
-
-    countrySold.innerText  = live.country?.soldKg ?? 0;
-    countryAvail.innerText = live.country?.availableKg ?? 0;
-
-    eggSold.innerText      = live.eggs?.sold ?? 0;
-    eggAvail.innerText     = live.eggs?.available ?? 0;
-
-    masalaSold.innerText   = live.masala?.soldAmount ?? 0;
-    masalaAvail.innerText  = live.masala?.availableAmount ?? 0;
-  }
-
-  /* ========== SALES SUMMARY ========== */
-
   const snap = await getDocs(collection(db,"sales"));
 
-  let totalSales=0,totalCost=0,totalProfit=0,totalBills=0;
-  let totalCash=0,totalOnline=0;
+  let totalSales = 0;
+  let totalCost = 0;
+  let totalProfit = 0;
+  let totalBills = 0;
 
-  let productProfit={
-    Broiler:0,Country:0,Eggs:0,Masala:0
-  };
+  let broilerProfit=0,countryProfit=0,eggProfit=0,masalaProfit=0;
+  let daily = {};
+  let bills = [];
 
   snap.forEach(doc=>{
-    const s=doc.data();
+    const s = doc.data();
     if(!s.date) return;
     if(s.date < from || s.date > to) return;
 
-    totalSales += Number(s.total||0);
-    totalCost  += Number(s.totalCost||0);
-    totalProfit+= Number(s.profit||0);
+    totalSales += Number(s.total || 0);
+    totalCost  += Number(s.totalCost || 0);
+    totalProfit += Number(s.profit || 0);
     totalBills++;
 
-    if(s.payment==="cash") totalCash += Number(s.total||0);
-    if(s.payment==="online") totalOnline += Number(s.total||0);
+    if(!daily[s.date]) daily[s.date]={sales:0,profit:0};
+    daily[s.date].sales += Number(s.total || 0);
+    daily[s.date].profit += Number(s.profit || 0);
 
-    if(s.items?.broiler)
-      productProfit.Broiler += (Number(s.items.broiler.amount)-Number(s.items.broiler.cost));
+    if(s.items?.broiler) broilerProfit += Number(s.items.broiler.amount) - Number(s.items.broiler.cost);
+    if(s.items?.country) countryProfit += Number(s.items.country.amount) - Number(s.items.country.cost);
+    if(s.items?.eggs) eggProfit += Number(s.items.eggs.amount) - Number(s.items.eggs.cost);
+    if(s.items?.masala) masalaProfit += Number(s.items.masala.amount) - Number(s.items.masala.cost);
 
-    if(s.items?.country)
-      productProfit.Country += (Number(s.items.country.amount)-Number(s.items.country.cost));
-
-    if(s.items?.eggs)
-      productProfit.Eggs += (Number(s.items.eggs.amount)-Number(s.items.eggs.cost));
-
-    if(s.items?.masala)
-      productProfit.Masala += (Number(s.items.masala.amount)-Number(s.items.masala.cost));
+    bills.push(s);
   });
 
   const profitPercent = totalSales ? (totalProfit/totalSales*100) : 0;
-  const best = Object.keys(productProfit)
-    .reduce((a,b)=>productProfit[a]>productProfit[b]?a:b,"Broiler");
 
-  totalSales.innerText=totalSales.toFixed(2);
-  totalCost.innerText=totalCost.toFixed(2);
-  totalProfit.innerText=totalProfit.toFixed(2);
-  profitPercent.innerText=profitPercent.toFixed(2);
-  totalCash.innerText=totalCash.toFixed(2);
-  totalOnline.innerText=totalOnline.toFixed(2);
-  totalBills.innerText=totalBills;
-  bestProduct.innerText=best;
+  const productProfits = {
+    Broiler:broilerProfit,
+    Country:countryProfit,
+    Eggs:eggProfit,
+    Masala:masalaProfit
+  };
+
+  const best = Object.keys(productProfits)
+    .reduce((a,b)=>productProfits[a]>productProfits[b]?a:b,"Broiler");
+
+  totalSales.innerText = totalSales.toFixed(2);
+  totalCost.innerText = totalCost.toFixed(2);
+  totalProfit.innerText = totalProfit.toFixed(2);
+  profitPercent.innerText = profitPercent.toFixed(2);
+  totalBills.innerText = totalBills;
+  bestProduct.innerText = best;
+
+  const labels = Object.keys(daily).sort();
+  const salesData = labels.map(d=>daily[d].sales);
+  const profitData = labels.map(d=>daily[d].profit);
+
+  if(salesChart) salesChart.destroy();
+  if(productPieChart) productPieChart.destroy();
+
+  // 🔥 MERGED GRAPH
+  salesChart = new Chart(document.getElementById("salesChart"),{
+    type:"line",
+    data:{
+      labels: labels,
+      datasets:[
+        {
+          label:"Sales ₹",
+          data:salesData,
+          borderColor:"#4f46e5",
+          backgroundColor:"rgba(79,70,229,0.1)",
+          tension:0.3
+        },
+        {
+          label:"Profit ₹",
+          data:profitData,
+          borderColor:"#16a34a",
+          backgroundColor:"rgba(22,163,74,0.1)",
+          tension:0.3
+        }
+      ]
+    },
+    options:{
+      responsive:true,
+      plugins:{ legend:{position:"top"} },
+      scales:{ y:{ beginAtZero:true } }
+    }
+  });
+
+  productPieChart = new Chart(document.getElementById("productPie"),{
+    type:"pie",
+    data:{
+      labels:["Broiler","Country","Eggs","Masala"],
+      datasets:[{data:[broilerProfit,countryProfit,eggProfit,masalaProfit]}]
+    }
+  });
+
+  const list = document.getElementById("billList");
+  if(bills.length===0){
+    list.innerHTML="No Sales";
+    return;
+  }
+
+  list.innerHTML = bills.map(s=>`
+    <div class="bill">
+      <div class="bill-head">
+        <span>${s.date} | ${s.payment?.toUpperCase()}</span>
+        <span>₹${s.total}</span>
+      </div>
+    </div>
+  `).join("");
 }
 
 loadData();
 
 </script>
+
 </body>
 </html>
