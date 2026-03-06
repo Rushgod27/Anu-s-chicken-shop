@@ -1,126 +1,278 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Stock Reconciliation</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+
+/* ===== GLOBAL ===== */
+
+body{
+margin:0;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+background:linear-gradient(135deg,#eef2ff,#f8fafc);
+color:#1f2937;
+}
+
+/* ===== HEADER ===== */
+
+.header{
+background:linear-gradient(135deg,#0f766e,#14b8a6);
+color:#fff;
+padding:18px;
+font-size:24px;
+font-weight:900;
+text-align:center;
+box-shadow:0 4px 10px rgba(0,0,0,0.1);
+}
+
+/* ===== LAYOUT ===== */
+
+.container{
+max-width:1000px;
+margin:auto;
+padding:16px;
+}
+
+/* ===== CARD ===== */
+
+.card{
+background:#fff;
+padding:18px;
+border-radius:16px;
+margin-bottom:16px;
+box-shadow:0 6px 14px rgba(0,0,0,0.05);
+}
+
+/* ===== STOCK BLOCK ===== */
+
+.stock-block{
+background:#f8fafc;
+padding:14px;
+border-radius:12px;
+margin-bottom:14px;
+border-left:4px solid #14b8a6;
+}
+
+.stock-title{
+font-weight:900;
+font-size:18px;
+margin-bottom:6px;
+}
+
+/* ===== INPUT ===== */
+
+input{
+width:100%;
+padding:10px;
+border-radius:8px;
+border:1px solid #d1d5db;
+margin-top:6px;
+margin-bottom:10px;
+font-size:15px;
+}
+
+/* ===== BUTTON ===== */
+
+button{
+padding:10px 14px;
+border:none;
+border-radius:10px;
+background:#16a34a;
+color:#fff;
+font-weight:800;
+cursor:pointer;
+transition:0.2s;
+}
+
+button:hover{
+background:#15803d;
+}
+
+/* ===== LOG ===== */
+
+.log-entry{
+background:#f8fafc;
+padding:10px;
+border-radius:8px;
+margin-bottom:8px;
+font-size:14px;
+}
+
+.positive{
+color:#16a34a;
+font-weight:900;
+}
+
+.negative{
+color:#dc2626;
+font-weight:900;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="header">📦 Stock Reconciliation</div>
+
+<div class="container">
+
+<div class="card">
+<h3>Adjust Physical Stock</h3>
+<div id="reconciliationSection">Loading stock...</div>
+</div>
+
+<div class="card">
+<h3>📜 Adjustment History</h3>
+<div id="adjustmentLog">Loading...</div>
+</div>
+
+</div>
+
+
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+
 import {
-  getFirestore,
-  collection,
-  getDocs,
-  addDoc,
-  doc,
-  updateDoc,
-  increment,
-  serverTimestamp
-} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+getFirestore,
+collection,
+getDocs,
+addDoc,
+doc,
+updateDoc,
+increment,
+serverTimestamp
+}
+from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 initializeApp({
-  apiKey:"AIzaSyComVLxo36wvogoBFEoWyea-_yESW9BIPU",
-  authDomain:"anus-chicken-shop.firebaseapp.com",
-  projectId:"anus-chicken-shop"
+apiKey:"AIzaSyComVLxo36wvogoBFEoWyea-_yESW9BIPU",
+authDomain:"anus-chicken-shop.firebaseapp.com",
+projectId:"anus-chicken-shop"
 });
 
-const db = getFirestore();
+const db=getFirestore();
 
 /* ===============================
-   LOAD STOCK FROM LIVE STOCK
-================================= */
+LOAD CURRENT STOCK
+=============================== */
 
 async function loadStock(){
 
-  const container = document.getElementById("reconciliationSection");
-
-  try{
-
-    const snap = await getDocs(collection(db,"stock_current"));
-
-    let live=null;
-
-    snap.forEach(d=>{
-      if(d.id==="live") live=d.data();
-    });
-
-    if(!live){
-      container.innerHTML="Live stock not found.";
-      return;
-    }
-
-    const totals = {
-      broiler: live.broiler?.availableKg || 0,
-      country: live.country?.availableKg || 0,
-      eggs: live.eggs?.availableQty || 0,
-      masala: live.masala?.availableQty || 0
-    };
-
-    container.innerHTML =
-      Object.keys(totals).map(item=>`
-        <h3>${item.toUpperCase()}</h3>
-
-        App Stock: ${totals[item].toFixed(2)}<br>
-
-        Physical Count:
-        <input type="number" step="0.01" id="physical-${item}"><br>
-
-        Reason:
-        <input type="text" id="reason-${item}" placeholder="Reason"><br>
-
-        <button onclick="adjust('${item}',${totals[item]})">
-          Record Adjustment
-        </button>
-
-        <hr>
-      `).join("");
-
-  }catch(error){
-    console.error(error);
-    container.innerHTML="Error loading stock";
-  }
-
-}
-
-
-/* ===============================
-   ADJUST LIVE STOCK
-================================= */
-
-window.adjust = async(item,current)=>{
-
-const physical = Number(document.getElementById(`physical-${item}`).value)||0;
-
-const reason =
-document.getElementById(`reason-${item}`).value || "Manual correction";
-
-const difference = physical - current;
-
-if(difference===0){
-alert("No difference found");
-return;
-}
-
-const type = difference>0 ? "positive" : "negative";
-
-const today = new Date().toISOString().slice(0,10);
+const container=document.getElementById("reconciliationSection");
 
 try{
 
-/* 1️⃣ LOG ADJUSTMENT */
+const snap=await getDocs(collection(db,"stock_current"));
+
+let live=null;
+
+snap.forEach(d=>{
+if(d.id==="live") live=d.data();
+});
+
+if(!live){
+container.innerHTML="Live stock not found";
+return;
+}
+
+const totals={
+broiler:live.broiler?.availableKg||0,
+country:live.country?.availableKg||0,
+eggs:live.eggs?.availableQty||0,
+masala:live.masala?.availableQty||0
+};
+
+container.innerHTML=
+
+Object.keys(totals).map(item=>`
+
+<div class="stock-block">
+
+<div class="stock-title">${item.toUpperCase()}</div>
+
+App Stock: <b>${totals[item].toFixed(2)}</b>
+
+<input type="number" step="0.01"
+id="physical-${item}"
+placeholder="Enter physical count">
+
+<input type="text"
+id="reason-${item}"
+placeholder="Reason (optional)">
+
+<button onclick="adjust('${item}',${totals[item]})">
+Record Adjustment
+</button>
+
+</div>
+
+`).join("");
+
+}catch(e){
+
+console.error(e);
+
+container.innerHTML="Error loading stock";
+
+}
+
+}
+
+/* ===============================
+ADJUST STOCK
+=============================== */
+
+window.adjust=async(item,current)=>{
+
+const physical=
+Number(document.getElementById(`physical-${item}`).value)||0;
+
+const reason=
+document.getElementById(`reason-${item}`).value||
+"Manual correction";
+
+const difference=physical-current;
+
+if(difference===0){
+
+alert("No difference found");
+
+return;
+
+}
+
+const type=difference>0?"positive":"negative";
+
+const today=new Date().toISOString().slice(0,10);
+
+try{
+
+/* LOG ADJUSTMENT */
 
 await addDoc(collection(db,"stock_adjustments"),{
+
 date:today,
 item,
 quantity:Math.abs(difference),
 type,
 reason,
 createdAt:serverTimestamp()
+
 });
 
+/* UPDATE LIVE STOCK */
 
-/* 2️⃣ UPDATE LIVE STOCK */
-
-const ref = doc(db,"stock_current","live");
+const ref=doc(db,"stock_current","live");
 
 if(item==="broiler"){
 
 await updateDoc(ref,{
-"broiler.availableKg": increment(difference)
+"broiler.availableKg":increment(difference)
 });
 
 }
@@ -128,7 +280,7 @@ await updateDoc(ref,{
 if(item==="country"){
 
 await updateDoc(ref,{
-"country.availableKg": increment(difference)
+"country.availableKg":increment(difference)
 });
 
 }
@@ -136,7 +288,7 @@ await updateDoc(ref,{
 if(item==="eggs"){
 
 await updateDoc(ref,{
-"eggs.availableQty": increment(difference)
+"eggs.availableQty":increment(difference)
 });
 
 }
@@ -144,67 +296,68 @@ await updateDoc(ref,{
 if(item==="masala"){
 
 await updateDoc(ref,{
-"masala.availableQty": increment(difference)
+"masala.availableQty":increment(difference)
 });
 
 }
-
 
 alert("Stock corrected successfully");
 
 location.reload();
 
-}catch(error){
+}catch(e){
 
-console.error(error);
+console.error(e);
+
 alert("Adjustment failed");
 
 }
 
 };
 
-
 /* ===============================
-   LOAD ADJUSTMENT HISTORY
-================================= */
+LOAD ADJUSTMENT HISTORY
+=============================== */
 
 async function loadLog(){
 
 try{
 
-const snap = await getDocs(collection(db,"stock_adjustments"));
+const snap=await getDocs(collection(db,"stock_adjustments"));
 
-const container = document.getElementById("adjustmentLog");
+const container=document.getElementById("adjustmentLog");
 
 if(snap.empty){
 
-container.innerHTML="No adjustments yet.";
+container.innerHTML="No adjustments yet";
 
 return;
 
 }
 
-const docs = snap.docs.slice().reverse();
+const docs=snap.docs.slice().reverse();
 
-container.innerHTML = docs.map(d=>{
+container.innerHTML=docs.map(d=>{
 
 const a=d.data();
 
-return `
+return`
 
 <div class="log-entry">
 
 ${a.date} – ${a.item.toUpperCase()}
 
-<span class="${a.type==='positive'?'positive':'negative'}">
+<span class="${
+a.type==="positive"?"positive":"negative"
+}">
 
-${a.type==='positive'?'+':'-'}${a.quantity}
+${a.type==="positive"?"+":"-"}${a.quantity}
 
 </span>
 
 <br>
 
-Reason: ${a.reason||'N/A'}
+Reason: ${a.reason||"N/A"}
 
 </div>
 
@@ -212,20 +365,22 @@ Reason: ${a.reason||'N/A'}
 
 }).join("");
 
-}catch(error){
+}catch(e){
 
-console.error(error);
-
-}
+console.error(e);
 
 }
 
+}
 
 /* ===============================
-   INITIAL LOAD
-================================= */
+INITIAL LOAD
+=============================== */
 
 loadStock();
 loadLog();
 
 </script>
+
+</body>
+</html>
