@@ -330,7 +330,7 @@ import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebas
 import {
 getFirestore, collection, addDoc, query,
 where, orderBy, getDocs, serverTimestamp,
-updateDoc, doc
+updateDoc, doc, increment
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 initializeApp({
@@ -340,12 +340,53 @@ projectId:"anus-chicken-shop"
 });
 
 const db=getFirestore();
+
 const now = new Date();
 
 const today =
   now.getFullYear() + "-" +
   String(now.getMonth()+1).padStart(2,"0") + "-" +
   String(now.getDate()).padStart(2,"0");
+
+
+/* ===============================
+   LIVE STOCK UPDATE
+================================ */
+
+async function decreaseLiveStock(type, qty){
+
+const ref = doc(db,"stock_current","live");
+
+if(type==="broiler"){
+await updateDoc(ref,{
+"broiler.availableKg": increment(-qty),
+"broiler.soldKg": increment(qty)
+});
+}
+
+if(type==="country"){
+await updateDoc(ref,{
+"country.availableKg": increment(-qty),
+"country.soldKg": increment(qty)
+});
+}
+
+if(type==="eggs"){
+await updateDoc(ref,{
+"eggs.availableQty": increment(-qty),
+"eggs.soldQty": increment(qty)
+});
+}
+
+if(type==="masala"){
+await updateDoc(ref,{
+"masala.availableQty": increment(-qty),
+"masala.soldQty": increment(qty)
+});
+}
+
+}
+
 
 let activeInput=null,payment=null;
 let active={broiler:false,country:false,egg:false,masala:false};
@@ -380,10 +421,19 @@ returnBox.style.display=p==="cash"?"block":"none";
 
 function calc(){
 let t=0;
-if(active.broiler)t+=(mode.broiler==="kg"?+broilerKg.value:(+broilerRs.value/+broilerPrice.value||0))*+broilerPrice.value;
-if(active.country)t+=(mode.country==="kg"?+countryKg.value:(+countryRs.value/+countryPrice.value||0))*+countryPrice.value;
-if(active.egg)t+=(+eggQty.value||0)*(+eggPrice.value||0);
-if(active.masala)t+=(+masalaAmt.value||0);
+
+if(active.broiler)
+t+=(mode.broiler==="kg"?+broilerKg.value:(+broilerRs.value/+broilerPrice.value||0))*+broilerPrice.value;
+
+if(active.country)
+t+=(mode.country==="kg"?+countryKg.value:(+countryRs.value/+countryPrice.value||0))*+countryPrice.value;
+
+if(active.egg)
+t+=(+eggQty.value||0)*(+eggPrice.value||0);
+
+if(active.masala)
+t+=(+masalaAmt.value||0);
+
 total.innerText=t.toFixed(2);
 
 if(payment==="cash"){
@@ -393,80 +443,11 @@ returnBox.classList.toggle("negative",r<0);
 }
 }
 
-async function loadTodaySales(){
 
-  const snap = await getDocs(collection(db,"sales"));
-  let data = [];
 
-  snap.forEach(d=>{
-    const s=d.data();
-    if(s.date===today){
-      data.push({id:d.id,...s});
-    }
-  });
-
-  // Sort newest first using createdAt
-  data.sort((a,b)=>
-    (b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)
-  );
-
-  let totalAmt=0,broiler=0,country=0,eggs=0,masala=0;
-
-  data.forEach(s=>{
-    totalAmt+=Number(s.total)||0;
-    broiler+=Number(s.items?.broiler?.qty)||0;
-    country+=Number(s.items?.country?.qty)||0;
-    eggs+=Number(s.items?.eggs?.qty)||0;
-    masala+=Number(s.items?.masala?.amount)||0;
-  });
-
-  todaySummary.innerHTML=`
-    Total ₹ ${totalAmt.toFixed(2)} |
-    Broiler ${broiler.toFixed(3)}kg |
-    Country ${country.toFixed(3)}kg |
-    Eggs ${eggs} |
-    Masala ₹ ${masala.toFixed(2)} |
-    Bills ${data.length}
-  `;
-
-  todayList.innerHTML = data.map((s,index)=>{
-
-    const time = s.createdAt?.toDate()
-      ? s.createdAt.toDate().toLocaleTimeString()
-      : "";
-
-    return `
-      <div style="background:#f8fafc;padding:12px;border-radius:12px;margin-bottom:10px">
-
-        <div style="display:flex;justify-content:space-between;font-weight:800">
-          <span>${time} | ${s.payment?.toUpperCase()}</span>
-          <span>₹${s.total}</span>
-        </div>
-
-        ${s.items?.broiler?`
-          <div style="font-size:14px">
-            🐔 Broiler ${s.items.broiler.qty}kg ₹${s.items.broiler.amount}
-          </div>`:''}
-
-        ${s.items?.country?`
-          <div style="font-size:14px">
-            🐓 Country ${s.items.country.qty}kg ₹${s.items.country.amount}
-          </div>`:''}
-
-        ${s.items?.eggs?`
-          <div style="font-size:14px">
-            🥚 Eggs ${s.items.eggs.qty} ₹${s.items.eggs.amount}
-          </div>`:''}
-
-        ${s.items?.masala?`
-          <div style="font-size:14px">
-            🌶 Masala ₹${s.items.masala.amount}
-          </div>`:''}
-
-      </div>
-    `;
-  }).join("") || "No sales today";
-}
+/* ===============================
+   SALE
+================================ */
 
 window.confirmSale = async()=>{
 
@@ -476,22 +457,28 @@ let items={};
 let finalTotal=0;
 let totalCost=0;
 
-// Prevent empty sale
 if(!active.broiler && !active.country && !active.egg && !active.masala){
 alert("No items selected");
 return;
 }
 
-/* 🐔 BROILER */
+/* BROILER */
+
 if(active.broiler){
+
 const rate=+broilerPrice.value||0;
+
 const qty=mode.broiler==="kg"
 ?+broilerKg.value
 :(+broilerRs.value/rate||0);
 
 if(qty>0){
+
 const amount=qty*rate;
+
 const cost=await deductStock("broiler",qty);
+
+await decreaseLiveStock("broiler",qty);
 
 items.broiler={
 qty:+qty.toFixed(3),
@@ -502,19 +489,29 @@ cost
 
 finalTotal+=amount;
 totalCost+=cost;
-}
+
 }
 
-/* 🐓 COUNTRY */
+}
+
+
+/* COUNTRY */
+
 if(active.country){
+
 const rate=+countryPrice.value||0;
+
 const qty=mode.country==="kg"
 ?+countryKg.value
 :(+countryRs.value/rate||0);
 
 if(qty>0){
+
 const amount=qty*rate;
+
 const cost=await deductStock("country",qty);
+
+await decreaseLiveStock("country",qty);
 
 items.country={
 qty:+qty.toFixed(3),
@@ -525,17 +522,26 @@ cost
 
 finalTotal+=amount;
 totalCost+=cost;
-}
+
 }
 
-/* 🥚 EGGS */
+}
+
+
+/* EGGS */
+
 if(active.egg){
+
 const qty=+eggQty.value||0;
 const rate=+eggPrice.value||0;
 
 if(qty>0){
+
 const amount=qty*rate;
+
 const cost=await deductStock("eggs",qty);
+
+await decreaseLiveStock("eggs",qty);
 
 items.eggs={
 qty,
@@ -546,18 +552,25 @@ cost
 
 finalTotal+=amount;
 totalCost+=cost;
-}
+
 }
 
-/* 🌶 MASALA */
+}
+
+
+/* MASALA */
+
 if(active.masala){
+
 const amount=+masalaAmt.value||0;
 
 if(amount>0){
-// assume one packet sold per entry
+
 const qty=1;
 
 const cost=await deductStock("masala",qty);
+
+await decreaseLiveStock("masala",qty);
 
 items.masala={
 qty,
@@ -567,8 +580,11 @@ cost
 
 finalTotal+=amount;
 totalCost+=cost;
+
 }
+
 }
+
 
 const profit = finalTotal-totalCost;
 
@@ -584,7 +600,7 @@ createdAt:serverTimestamp()
 
 alert("Sale saved");
 
-// Reset only billing fields
+
 active = {broiler:false,country:false,egg:false,masala:false};
 
 document.querySelectorAll(".btn").forEach(b=>b.classList.remove("active"));
@@ -599,129 +615,83 @@ masalaAmt.value="";
 received.value="";
 
 payment=null;
+
 total.innerText="0.00";
 returnAmt.innerText="0.00";
 returnBox.style.display="none";
 received.style.display="none";
 
-// Reload today sales list only
 loadTodaySales();
 
 }catch(e){
 alert(e.message);
 }
-};
 
-window.savePrices = async () => {
-  try {
-
-    if(!broilerPrice.value || !countryPrice.value || !eggPrice.value){
-      alert("Enter all prices");
-      return;
-    }
-
-    await addDoc(collection(db,"dailyPrices"),{
-      date: today,
-      broilerPrice: +broilerPrice.value,
-      countryPrice: +countryPrice.value,
-      eggPrice: +eggPrice.value,
-      updatedAtMs: Date.now(),
-      createdAt: serverTimestamp()
-    });
-
-    alert("Prices saved successfully");
-    loadTodayPrices(); // reload prices immediately
-
-  } catch (e){
-    alert("Error: " + e.message);
-  }
 };
 
 
-async function loadTodayPrices(){
 
-  const q = query(
-    collection(db,"dailyPrices"),
-    where("date","==",today)
-  );
-
-  const snap = await getDocs(q);
-
-  let latest = null;
-
-  snap.forEach(doc=>{
-    const d = doc.data();
-    if(!latest || (d.updatedAtMs && d.updatedAtMs > latest.updatedAtMs)){
-      latest = d;
-    }
-  });
-
-  if(latest){
-    broilerPrice.value = latest.broilerPrice ?? "";
-    countryPrice.value = latest.countryPrice ?? "";
-    eggPrice.value = latest.eggPrice ?? "";
-  }
-}
-
-
+/* ===============================
+   FIFO STOCK DEDUCTION
+================================ */
 
 async function deductStock(type, quantity){
 
-  let remaining = quantity;
-  let totalCost = 0;
+let remaining = quantity;
+let totalCost = 0;
 
-  const q = query(
-    collection(db,"stock_entries"),
-    where("type","==",type),
-    where("status","==","active"),
-    orderBy("createdAt")
-  );
+const q = query(
+collection(db,"stock_entries"),
+where("type","==",type),
+where("status","==","active"),
+orderBy("createdAt")
+);
 
-  const snap = await getDocs(q);
+const snap = await getDocs(q);
 
-  for(const d of snap.docs){
+for(const d of snap.docs){
 
-    if(remaining <= 0) break;
+if(remaining <= 0) break;
 
-    const batch = d.data();
+const batch = d.data();
 
-    const available = (type==="broiler" || type==="country")
-      ? batch.remainingKg
-      : batch.remainingQty;
+const available = (type==="broiler" || type==="country")
+? batch.remainingKg
+: batch.remainingQty;
 
-    const take = Math.min(available, remaining);
+const take = Math.min(available, remaining);
 
-    if(type==="broiler" || type==="country"){
+if(type==="broiler" || type==="country"){
 
-      totalCost += take * batch.costPerSellableKg;
+totalCost += take * batch.costPerSellableKg;
 
-      await updateDoc(d.ref,{
-        remainingKg: available - take,
-        status: (available - take)<=0 ? "closed" : "active"
-      });
+await updateDoc(d.ref,{
+remainingKg: available - take,
+status: (available - take)<=0 ? "closed" : "active"
+});
 
-    }else{
+}else{
 
-      totalCost += take * batch.costPerUnit;
+totalCost += take * batch.costPerUnit;
 
-      await updateDoc(d.ref,{
-        remainingQty: available - take,
-        status: (available - take)<=0 ? "closed" : "active"
-      });
-    }
+await updateDoc(d.ref,{
+remainingQty: available - take,
+status: (available - take)<=0 ? "closed" : "active"
+});
 
-    remaining -= take;
-  }
-
-  if(remaining > 0){
-    throw new Error("Insufficient stock for "+type);
-  }
-
-  return +totalCost.toFixed(2);
 }
 
-loadTodayPrices();
-loadTodaySales();
+remaining -= take;
+
+}
+
+if(remaining > 0){
+throw new Error("Insufficient stock for "+type);
+}
+
+return +totalCost.toFixed(2);
+
+}
 
 </script>
 
