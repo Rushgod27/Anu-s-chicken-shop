@@ -9,74 +9,108 @@
 <style>
 
 body{
-  margin:0;
-  font-family:system-ui;
-  background:#f8fafc;
+margin:0;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+background:linear-gradient(135deg,#eef2ff,#f8fafc);
+color:#1f2937;
 }
+
+/* HEADER */
 
 .header{
-  background:linear-gradient(135deg,#fbbf24,#f59e0b);
-  padding:20px;
-  text-align:center;
-  font-size:26px;
-  font-weight:900;
-  color:#111827;
-  box-shadow:0 4px 10px rgba(0,0,0,.08);
+background:linear-gradient(135deg,#f59e0b,#fbbf24);
+padding:22px;
+text-align:center;
+font-size:26px;
+font-weight:900;
+color:#111827;
+box-shadow:0 4px 14px rgba(0,0,0,.08);
 }
+
+/* CONTAINER */
 
 .container{
-  max-width:1200px;
-  margin:auto;
-  padding:30px;
+max-width:1200px;
+margin:auto;
+padding:28px 20px;
 }
+
+/* GRID */
 
 .grid{
-  display:grid;
-  grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-  gap:25px;
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+gap:22px;
 }
 
+/* CARD */
+
 .card{
-  background:#fff;
-  border-radius:18px;
-  padding:30px;
-  text-align:center;
-  cursor:pointer;
-  transition:.2s;
-  box-shadow:0 8px 20px rgba(0,0,0,.05);
+background:#fff;
+border-radius:18px;
+padding:26px;
+text-align:center;
+cursor:pointer;
+transition:.2s;
+box-shadow:
+0 6px 18px rgba(0,0,0,.06),
+0 2px 6px rgba(0,0,0,.03);
 }
 
 .card:hover{
-  transform:translateY(-6px);
-  box-shadow:0 15px 30px rgba(0,0,0,.12);
+transform:translateY(-6px);
+box-shadow:
+0 12px 28px rgba(0,0,0,.12),
+0 6px 10px rgba(0,0,0,.05);
+}
+
+.card:active{
+transform:scale(.97);
 }
 
 .icon{
-  font-size:40px;
-  margin-bottom:15px;
+font-size:42px;
+margin-bottom:14px;
 }
 
 .title{
-  font-size:20px;
-  font-weight:900;
-  margin-bottom:8px;
+font-size:20px;
+font-weight:900;
+margin-bottom:6px;
 }
 
 .subtitle{
-  font-size:14px;
-  color:#6b7280;
+font-size:14px;
+color:#6b7280;
 }
 
 .footer{
-  margin-top:40px;
-  text-align:center;
-  color:#9ca3af;
-  font-size:13px;
+margin-top:40px;
+text-align:center;
+color:#9ca3af;
+font-size:13px;
 }
 
 a{
-  text-decoration:none;
-  color:inherit;
+text-decoration:none;
+color:inherit;
+}
+
+@media (max-width:600px){
+
+.header{
+font-size:22px;
+padding:18px;
+}
+
+.card{
+padding:22px;
+}
+
+.icon{
+font-size:36px;
+}
+
 }
 
 </style>
@@ -93,69 +127,76 @@ a{
 <div class="grid">
 
 <a href="Billing.html">
-  <div class="card">
-    <div class="icon">🧾</div>
-    <div class="title">Billing</div>
-    <div class="subtitle">Create bills & complete sales</div>
-  </div>
+<div class="card">
+<div class="icon">🧾</div>
+<div class="title">Billing</div>
+<div class="subtitle">Create bills & complete sales</div>
+</div>
 </a>
 
 <a href="Sale History.html">
-  <div class="card">
-    <div class="icon">📜</div>
-    <div class="title">Sales History</div>
-    <div class="subtitle">View detailed sales reports</div>
-  </div>
+<div class="card">
+<div class="icon">📜</div>
+<div class="title">Sales History</div>
+<div class="subtitle">View detailed sales reports</div>
+</div>
 </a>
 
 <a href="Update Stock.html">
-  <div class="card">
-    <div class="icon">📦</div>
-    <div class="title">Stock Update</div>
-    <div class="subtitle">Add incoming stock</div>
-  </div>
-</a>
-
-<a href="Owner pannel.html">
-  <div class="card">
-    <div class="icon">📊</div>
-    <div class="title">Owner Panel</div>
-    <div class="subtitle">Enterprise control dashboard</div>
-  </div>
-</a>
-
-<a href="Expenses.html">
-  <div class="card">
-    <div class="icon">💸</div>
-    <div class="title">Expenses</div>
-    <div class="subtitle">Manage shop expenses</div>
-  </div>
-</a>
-
-<a href="Supplier dues.html">
-  <div class="card">
-    <div class="icon">🤝</div>
-    <div class="title">Supplier Dues</div>
-    <div class="subtitle">Track pending payments</div>
-  </div>
+<div class="card">
+<div class="icon">📦</div>
+<div class="title">Stock Update</div>
+<div class="subtitle">Add incoming stock</div>
+</div>
 </a>
 
 <a href="Stock adjustments.html">
-  <div class="card">
-    <div class="icon">⚖️</div>
-    <div class="title">Stock Adjustments</div>
-    <div class="subtitle">Physical vs app reconciliation</div>
-  </div>
+<div class="card">
+<div class="icon">⚖️</div>
+<div class="title">Stock Adjustments</div>
+<div class="subtitle">Fix physical stock mismatch</div>
+</div>
+</a>
+
+<a href="wastage.html">
+<div class="card">
+<div class="icon">🗑️</div>
+<div class="title">Wastage</div>
+<div class="subtitle">Record spoilage & losses</div>
+</div>
+</a>
+
+<a href="Expenses.html">
+<div class="card">
+<div class="icon">💸</div>
+<div class="title">Expenses</div>
+<div class="subtitle">Manage shop expenses</div>
+</div>
+</a>
+
+<a href="Supplier dues.html">
+<div class="card">
+<div class="icon">🤝</div>
+<div class="title">Supplier Dues</div>
+<div class="subtitle">Track pending payments</div>
+</div>
+</a>
+
+<a href="Owner pannel.html">
+<div class="card">
+<div class="icon">📊</div>
+<div class="title">Owner Panel</div>
+<div class="subtitle">Enterprise control dashboard</div>
+</div>
 </a>
 
 </div>
 
 <div class="footer">
-© 2026 Anu’s Chicken Shop • Enterprise System
+© 2026 Anu’s Chicken Shop • Inventory & Billing System
 </div>
 
 </div>
 
 </body>
 </html>
-
