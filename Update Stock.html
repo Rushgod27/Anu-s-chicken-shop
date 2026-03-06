@@ -122,6 +122,9 @@ import {
   getFirestore,
   collection,
   addDoc,
+  doc,
+  updateDoc,
+  increment,
   serverTimestamp
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
@@ -134,6 +137,46 @@ initializeApp({
 const db = getFirestore();
 
 date.value = new Date().toISOString().slice(0,10);
+
+
+/* ===============================
+   UPDATE LIVE STOCK
+================================ */
+
+async function increaseLiveStock(type, qty){
+
+  const ref = doc(db,"stock_current","live");
+
+  if(type==="broiler"){
+    await updateDoc(ref,{
+      "broiler.availableKg": increment(qty)
+    });
+  }
+
+  if(type==="country"){
+    await updateDoc(ref,{
+      "country.availableKg": increment(qty)
+    });
+  }
+
+  if(type==="eggs"){
+    await updateDoc(ref,{
+      "eggs.availableQty": increment(qty)
+    });
+  }
+
+  if(type==="masala"){
+    await updateDoc(ref,{
+      "masala.availableQty": increment(qty)
+    });
+  }
+
+}
+
+
+/* ===============================
+   SAVE STOCK ENTRY
+================================ */
 
 window.saveStock = async () => {
 
@@ -157,7 +200,7 @@ window.saveStock = async () => {
 
   try {
 
-    // 🐔 Broiler
+    /* 🐔 BROILER */
     if(+broilerKg.value > 0 && +broilerCost.value > 0){
 
       const rawKg = +broilerKg.value;
@@ -176,9 +219,12 @@ window.saveStock = async () => {
         totalCost,
         costPerSellableKg:+costPerSellableKg.toFixed(2)
       });
+
+      await increaseLiveStock("broiler",sellableKg);
     }
 
-    // 🐓 Country
+
+    /* 🐓 COUNTRY */
     if(+countryKg.value > 0 && +countryCost.value > 0){
 
       const rawKg = +countryKg.value;
@@ -196,9 +242,12 @@ window.saveStock = async () => {
         totalCost,
         costPerSellableKg:+costPerSellableKg.toFixed(2)
       });
+
+      await increaseLiveStock("country",rawKg);
     }
 
-    // 🥚 Eggs
+
+    /* 🥚 EGGS */
     if(+eggTrays.value > 0 && +eggCost.value > 0){
 
       const trays = +eggTrays.value;
@@ -216,9 +265,12 @@ window.saveStock = async () => {
         totalCost,
         costPerUnit:+costPerUnit.toFixed(2)
       });
+
+      await increaseLiveStock("eggs",totalEggs);
     }
 
-    // 🌶 Masala
+
+    /* 🌶 MASALA */
     if(
       masalaBrand.value &&
       +masalaQty.value > 0 &&
@@ -239,6 +291,8 @@ window.saveStock = async () => {
         totalCost,
         costPerUnit:+costPerUnit.toFixed(2)
       });
+
+      await increaseLiveStock("masala",qty);
     }
 
     alert("Stock entry saved successfully");
