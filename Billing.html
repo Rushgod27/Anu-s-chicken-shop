@@ -341,92 +341,153 @@ projectId:"anus-chicken-shop"
 
 const db=getFirestore();
 
-const now = new Date();
+const now=new Date();
 
-const today =
-  now.getFullYear() + "-" +
-  String(now.getMonth()+1).padStart(2,"0") + "-" +
-  String(now.getDate()).padStart(2,"0");
+const today=
+now.getFullYear()+"-"+
+String(now.getMonth()+1).padStart(2,"0")+"-"+
+String(now.getDate()).padStart(2,"0");
 
+let saleProcessing=false;
 
 /* ===============================
    LIVE STOCK UPDATE
 ================================ */
 
-async function decreaseLiveStock(type, qty){
+async function decreaseLiveStock(type,qty){
 
-const ref = doc(db,"stock_current","live");
+const ref=doc(db,"stock_current","live");
 
 if(type==="broiler"){
 await updateDoc(ref,{
-"broiler.availableKg": increment(-qty),
-"broiler.soldKg": increment(qty)
+"broiler.availableKg":increment(-qty),
+"broiler.soldKg":increment(qty)
 });
 }
 
 if(type==="country"){
 await updateDoc(ref,{
-"country.availableKg": increment(-qty),
-"country.soldKg": increment(qty)
+"country.availableKg":increment(-qty),
+"country.soldKg":increment(qty)
 });
 }
 
 if(type==="eggs"){
 await updateDoc(ref,{
-"eggs.availableQty": increment(-qty),
-"eggs.soldQty": increment(qty)
+"eggs.availableQty":increment(-qty),
+"eggs.soldQty":increment(qty)
 });
 }
 
 if(type==="masala"){
 await updateDoc(ref,{
-"masala.availableQty": increment(-qty),
-"masala.soldQty": increment(qty)
+"masala.availableQty":increment(-qty),
+"masala.soldQty":increment(qty)
 });
 }
 
 }
 
+/* ===============================
+   KEYPAD
+================================ */
 
-let activeInput=null,payment=null;
+let activeInput=null;
+let payment=null;
+
 let active={broiler:false,country:false,egg:false,masala:false};
+
 let mode={broiler:"kg",country:"kg"};
 
 document.querySelectorAll("input").forEach(i=>i.onclick=()=>activeInput=i);
-window.add=v=>{if(activeInput){activeInput.value+=v;calc()}};
-window.del=()=>{if(activeInput){activeInput.value=activeInput.value.slice(0,-1);calc()}};
+
+window.add=v=>{
+if(activeInput){
+activeInput.value+=v;
+calc();
+}
+};
+
+window.del=()=>{
+if(activeInput){
+activeInput.value=activeInput.value.slice(0,-1);
+calc();
+}
+};
+
+/* ===============================
+   ITEM TOGGLE
+================================ */
 
 window.toggleItem=(t,b)=>{
 active[t]=!active[t];
 b.classList.toggle("active");
-document.getElementById(t+"Box").style.display=active[t]?"block":"none";
+
+document.getElementById(t+"Box").style.display=
+active[t]?"block":"none";
+
 calc();
 };
 
+/* ===============================
+   MODE
+================================ */
+
 window.setMode=(t,m,b)=>{
+
 mode[t]=m;
-b.parentElement.querySelectorAll(".btn").forEach(x=>x.classList.remove("active"));
+
+b.parentElement.querySelectorAll(".btn")
+.forEach(x=>x.classList.remove("active"));
+
 b.classList.add("active");
-document.getElementById(t+"Kg").style.display=m==="kg"?"block":"none";
-document.getElementById(t+"Rs").style.display=m==="rs"?"block":"none";
+
+document.getElementById(t+"Kg").style.display=
+m==="kg"?"block":"none";
+
+document.getElementById(t+"Rs").style.display=
+m==="rs"?"block":"none";
+
 };
+
+/* ===============================
+   PAYMENT
+================================ */
 
 window.setPayment=(p,b)=>{
+
 payment=p;
-b.parentElement.querySelectorAll(".btn").forEach(x=>x.classList.remove("active"));
+
+b.parentElement.querySelectorAll(".btn")
+.forEach(x=>x.classList.remove("active"));
+
 b.classList.add("active");
+
 received.style.display=p==="cash"?"block":"none";
+
 returnBox.style.display=p==="cash"?"block":"none";
+
 };
 
+/* ===============================
+   CALCULATE
+================================ */
+
 function calc(){
+
 let t=0;
 
 if(active.broiler)
-t+=(mode.broiler==="kg"?+broilerKg.value:(+broilerRs.value/+broilerPrice.value||0))*+broilerPrice.value;
+t+=(mode.broiler==="kg"
+?+broilerKg.value
+:(+broilerRs.value/+broilerPrice.value||0))
+*+broilerPrice.value;
 
 if(active.country)
-t+=(mode.country==="kg"?+countryKg.value:(+countryRs.value/+countryPrice.value||0))*+countryPrice.value;
+t+=(mode.country==="kg"
+?+countryKg.value
+:(+countryRs.value/+countryPrice.value||0))
+*+countryPrice.value;
 
 if(active.egg)
 t+=(+eggQty.value||0)*(+eggPrice.value||0);
@@ -437,19 +498,26 @@ t+=(+masalaAmt.value||0);
 total.innerText=t.toFixed(2);
 
 if(payment==="cash"){
+
 const r=(+received.value||0)-t;
+
 returnAmt.innerText=r.toFixed(2);
+
 returnBox.classList.toggle("negative",r<0);
-}
+
 }
 
-
+}
 
 /* ===============================
    SALE
 ================================ */
 
-window.confirmSale = async()=>{
+window.confirmSale=async()=>{
+
+if(saleProcessing)return;
+
+saleProcessing=true;
 
 try{
 
@@ -458,8 +526,13 @@ let finalTotal=0;
 let totalCost=0;
 
 if(!active.broiler && !active.country && !active.egg && !active.masala){
+
 alert("No items selected");
+
+saleProcessing=false;
+
 return;
+
 }
 
 /* BROILER */
@@ -494,14 +567,13 @@ totalCost+=cost;
 
 }
 
-
 /* COUNTRY */
 
 if(active.country){
 
 const rate=+countryPrice.value||0;
 
-const qty=mode.country==="kg"
+const qty=mode.country==="kg
 ?+countryKg.value
 :(+countryRs.value/rate||0);
 
@@ -526,7 +598,6 @@ totalCost+=cost;
 }
 
 }
-
 
 /* EGGS */
 
@@ -557,7 +628,6 @@ totalCost+=cost;
 
 }
 
-
 /* MASALA */
 
 if(active.masala){
@@ -585,10 +655,10 @@ totalCost+=cost;
 
 }
 
-
-const profit = finalTotal-totalCost;
+const profit=finalTotal-totalCost;
 
 await addDoc(collection(db,"sales"),{
+
 date:today,
 items,
 total:+finalTotal.toFixed(2),
@@ -596,15 +666,20 @@ totalCost:+totalCost.toFixed(2),
 profit:+profit.toFixed(2),
 payment,
 createdAt:serverTimestamp()
+
 });
 
 alert("Sale saved");
 
+/* RESET */
 
-active = {broiler:false,country:false,egg:false,masala:false};
+active={broiler:false,country:false,egg:false,masala:false};
 
-document.querySelectorAll(".btn").forEach(b=>b.classList.remove("active"));
-document.querySelectorAll(".card[id$='Box']").forEach(b=>b.style.display="none");
+document.querySelectorAll(".btn")
+.forEach(b=>b.classList.remove("active"));
+
+document.querySelectorAll(".card[id$='Box']")
+.forEach(b=>b.style.display="none");
 
 broilerKg.value="";
 broilerRs.value="";
@@ -617,81 +692,193 @@ received.value="";
 payment=null;
 
 total.innerText="0.00";
-returnAmt.innerText="0.00";
-returnBox.style.display="none";
-received.style.display="none";
 
 loadTodaySales();
 
 }catch(e){
+
 alert(e.message);
+
 }
+
+saleProcessing=false;
 
 };
 
-
-
 /* ===============================
-   FIFO STOCK DEDUCTION
+   FIFO STOCK
 ================================ */
 
-async function deductStock(type, quantity){
+async function deductStock(type,quantity){
 
-let remaining = quantity;
-let totalCost = 0;
+let remaining=quantity;
 
-const q = query(
+let totalCost=0;
+
+const q=query(
 collection(db,"stock_entries"),
 where("type","==",type),
 where("status","==","active"),
 orderBy("createdAt")
 );
 
-const snap = await getDocs(q);
+const snap=await getDocs(q);
 
 for(const d of snap.docs){
 
-if(remaining <= 0) break;
+if(remaining<=0)break;
 
-const batch = d.data();
+const batch=d.data();
 
-const available = (type==="broiler" || type==="country")
-? batch.remainingKg
-: batch.remainingQty;
+const available=
+(type==="broiler"||type==="country")
+?batch.remainingKg
+:batch.remainingQty;
 
-const take = Math.min(available, remaining);
+const take=Math.min(available,remaining);
 
-if(type==="broiler" || type==="country"){
+if(type==="broiler"||type==="country"){
 
-totalCost += take * batch.costPerSellableKg;
+totalCost+=take*batch.costPerSellableKg;
 
 await updateDoc(d.ref,{
-remainingKg: available - take,
-status: (available - take)<=0 ? "closed" : "active"
+remainingKg:available-take,
+status:(available-take)<=0?"closed":"active"
 });
 
 }else{
 
-totalCost += take * batch.costPerUnit;
+totalCost+=take*batch.costPerUnit;
 
 await updateDoc(d.ref,{
-remainingQty: available - take,
-status: (available - take)<=0 ? "closed" : "active"
+remainingQty:available-take,
+status:(available-take)<=0?"closed":"active"
 });
 
 }
 
-remaining -= take;
+remaining-=take;
 
 }
 
-if(remaining > 0){
+if(remaining>0){
+
 throw new Error("Insufficient stock for "+type);
+
 }
 
 return +totalCost.toFixed(2);
 
 }
+
+/* ===============================
+   TODAY PRICES
+================================ */
+
+window.savePrices=async()=>{
+
+if(!broilerPrice.value||!countryPrice.value||!eggPrice.value){
+
+alert("Enter all prices");
+
+return;
+
+}
+
+await addDoc(collection(db,"dailyPrices"),{
+
+date:today,
+
+broilerPrice:+broilerPrice.value,
+
+countryPrice:+countryPrice.value,
+
+eggPrice:+eggPrice.value,
+
+updatedAtMs:Date.now(),
+
+createdAt:serverTimestamp()
+
+});
+
+alert("Prices saved");
+
+loadTodayPrices();
+
+};
+
+async function loadTodayPrices(){
+
+const q=query(
+collection(db,"dailyPrices"),
+where("date","==",today)
+);
+
+const snap=await getDocs(q);
+
+let latest=null;
+
+snap.forEach(d=>{
+
+const data=d.data();
+
+if(!latest||data.updatedAtMs>latest.updatedAtMs)
+latest=data;
+
+});
+
+if(latest){
+
+broilerPrice.value=latest.broilerPrice;
+
+countryPrice.value=latest.countryPrice;
+
+eggPrice.value=latest.eggPrice;
+
+}
+
+}
+
+/* ===============================
+   TODAY SALES
+================================ */
+
+async function loadTodaySales(){
+
+const q=query(
+collection(db,"sales"),
+where("date","==",today),
+orderBy("createdAt","desc")
+);
+
+const snap=await getDocs(q);
+
+let totalAmt=0;
+
+let list="";
+
+snap.forEach(d=>{
+
+const s=d.data();
+
+totalAmt+=s.total||0;
+
+list+=`
+<div style="background:#f8fafc;padding:10px;border-radius:10px;margin-bottom:8px">
+₹${s.total} • ${s.payment}
+</div>
+`;
+
+});
+
+todaySummary.innerHTML="Total ₹ "+totalAmt.toFixed(2);
+
+todayList.innerHTML=list||"No sales today";
+
+}
+
+loadTodayPrices();
+loadTodaySales();
 
 </script>
 
