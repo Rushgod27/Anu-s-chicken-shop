@@ -908,7 +908,7 @@ snap.forEach(d=>{
 data.push(d.data());
 });
 
-/* sort newest first */
+/* newest first */
 
 data.sort((a,b)=>
 (b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)
@@ -937,6 +937,7 @@ let itemsHTML="";
 /* BROILER */
 
 if(s.items?.broiler){
+
 broilerQty+=s.items.broiler.qty||0;
 
 itemsHTML+=`
@@ -947,6 +948,7 @@ itemsHTML+=`
 /* COUNTRY */
 
 if(s.items?.country){
+
 countryQty+=s.items.country.qty||0;
 
 itemsHTML+=`
@@ -957,6 +959,7 @@ itemsHTML+=`
 /* EGGS */
 
 if(s.items?.eggs){
+
 eggQty+=s.items.eggs.qty||0;
 
 itemsHTML+=`
@@ -967,6 +970,7 @@ itemsHTML+=`
 /* MASALA */
 
 if(s.items?.masala){
+
 masalaAmt+=s.items.masala.amount||0;
 
 itemsHTML+=`
@@ -974,16 +978,31 @@ itemsHTML+=`
 `;
 }
 
+/* TIME */
+
+let saleTime="";
+
+if(s.createdAt?.toDate){
+const d=s.createdAt.toDate();
+saleTime=d.toLocaleDateString()+" • "+d.toLocaleTimeString();
+}
+
 list+=`
+
 <div style="background:#f8fafc;padding:10px;border-radius:10px;margin-bottom:8px">
 
-<div style="font-weight:800">
-₹${s.total} • ${s.payment}
+<div style="display:flex;justify-content:space-between;font-weight:800">
+
+<span>${saleTime}</span>
+
+<span>₹${s.total} • ${s.payment}</span>
+
 </div>
 
 ${itemsHTML}
 
 </div>
+
 `;
 
 });
@@ -1004,6 +1023,7 @@ Bills ${data.length}
 todayList.innerHTML=list||"No sales today";
 
 }
+
 
 async function loadLiveStock(){
 
