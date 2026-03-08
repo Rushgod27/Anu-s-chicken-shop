@@ -216,12 +216,50 @@ input:focus{
   background:linear-gradient(145deg,#ef4444,#dc2626);
 }
 
+.stockBar{
+display:flex;
+gap:10px;
+padding:10px;
+flex-wrap:wrap;
+background:#ffffff;
+border-bottom:1px solid #e5e7eb;
+justify-content:center;
+}
+
+.stockItem{
+background:#eef2ff;
+padding:8px 14px;
+border-radius:10px;
+font-weight:800;
+font-size:14px;
+}
+
 </style>
 </head>
 
 <body>
 
 <div class="header">🐔 Anu’s Chicken Shop – Billing</div>
+
+<div class="stockBar">
+
+<div class="stockItem">
+🐔 Broiler: <span id="stockBroiler">0</span> kg
+</div>
+
+<div class="stockItem">
+🐓 Country: <span id="stockCountry">0</span> kg
+</div>
+
+<div class="stockItem">
+🥚 Eggs: <span id="stockEggs">0</span>
+</div>
+
+<div class="stockItem">
+🌶 Masala: <span id="stockMasala">0</span>
+</div>
+
+</div>
 
 <div class="container">
 <div class="main">
@@ -230,10 +268,11 @@ input:focus{
 
 <div class="card">
 <h3>Today’s Prices</h3>
+<input type="date" id="saleDate">
 <div class="row">
-<input id="broilerPrice">
-<input id="countryPrice">
-<input id="eggPrice">
+<input id="broilerPrice" placeholder="Broiler Price / kg">
+<input id="countryPrice" placeholder="Country Price / kg">
+<input id="eggPrice" placeholder="Egg Price">
 </div>
 <button class="primary" onclick="savePrices()">Save Prices</button>
 </div>
@@ -329,7 +368,7 @@ Return ₹ <span id="returnAmt">0.00</span>
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
 import {
 getFirestore, collection, addDoc, query,
-where, orderBy, getDocs, serverTimestamp,
+where, orderBy, getDocs, getDoc, serverTimestamp,
 updateDoc, doc, increment
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
@@ -343,11 +382,21 @@ const db=getFirestore();
 
 const now=new Date();
 
-const today=
+const defaultDate=
 now.getFullYear()+"-"+
 String(now.getMonth()+1).padStart(2,"0")+"-"+
 String(now.getDate()).padStart(2,"0");
 
+saleDate.value=defaultDate;
+
+saleDate.addEventListener("change",()=>{
+loadTodayPrices();
+loadTodaySales();
+});
+
+function getSaleDate(){
+return saleDate.value || defaultDate;
+}
 let saleProcessing=false;
 
 /* ===============================
@@ -573,7 +622,7 @@ if(active.country){
 
 const rate=+countryPrice.value||0;
 
-const qty=mode.country==="kg
+const qty=mode.country==="kg"
 ?+countryKg.value
 :(+countryRs.value/rate||0);
 
@@ -659,7 +708,7 @@ const profit=finalTotal-totalCost;
 
 await addDoc(collection(db,"sales"),{
 
-date:today,
+date:getSaleDate(),
 items,
 total:+finalTotal.toFixed(2),
 totalCost:+totalCost.toFixed(2),
@@ -694,6 +743,7 @@ payment=null;
 total.innerText="0.00";
 
 loadTodaySales();
+loadLiveStock();
 
 }catch(e){
 
@@ -787,7 +837,7 @@ return;
 
 await addDoc(collection(db,"dailyPrices"),{
 
-date:today,
+date:getSaleDate(),
 
 broilerPrice:+broilerPrice.value,
 
@@ -811,7 +861,7 @@ async function loadTodayPrices(){
 
 const q=query(
 collection(db,"dailyPrices"),
-where("date","==",today)
+where("date","==",getSaleDate())
 );
 
 const snap=await getDocs(q);
@@ -847,7 +897,7 @@ async function loadTodaySales(){
 
 const q=query(
 collection(db,"sales"),
-where("date","==",today),
+where("date","==",getSaleDate()),
 orderBy("createdAt","desc")
 );
 
@@ -876,9 +926,25 @@ todaySummary.innerHTML="Total ₹ "+totalAmt.toFixed(2);
 todayList.innerHTML=list||"No sales today";
 
 }
+async function loadLiveStock(){
+
+const ref = doc(db,"stock_current","live");
+const snap = await getDoc(ref);
+
+if(!snap.exists()) return;
+
+const s = snap.data();
+
+stockBroiler.innerText=(s.broiler?.availableKg||0).toFixed(2);
+stockCountry.innerText=(s.country?.availableKg||0).toFixed(2);
+stockEggs.innerText=(s.eggs?.availableQty||0);
+stockMasala.innerText=(s.masala?.availableQty||0);
+}
+
 
 loadTodayPrices();
 loadTodaySales();
+loadLiveStock();
 
 </script>
 
