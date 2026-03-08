@@ -908,6 +908,8 @@ snap.forEach(d=>{
 data.push(d.data());
 });
 
+/* sort newest first */
+
 data.sort((a,b)=>
 (b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)
 );
@@ -916,23 +918,27 @@ let totalAmt=0;
 let cashTotal=0;
 let onlineTotal=0;
 
+let broilerQty=0;
+let countryQty=0;
+let eggQty=0;
+let masalaAmt=0;
+
 let list="";
 
 data.forEach(s=>{
 
 totalAmt+=s.total||0;
 
-if(s.payment==="cash")
-cashTotal+=s.total||0;
-
-if(s.payment==="online")
-onlineTotal+=s.total||0;
+if(s.payment==="cash") cashTotal+=s.total||0;
+if(s.payment==="online") onlineTotal+=s.total||0;
 
 let itemsHTML="";
 
 /* BROILER */
 
 if(s.items?.broiler){
+broilerQty+=s.items.broiler.qty||0;
+
 itemsHTML+=`
 <div>🐔 Broiler ${s.items.broiler.qty}kg ₹${s.items.broiler.amount}</div>
 `;
@@ -941,6 +947,8 @@ itemsHTML+=`
 /* COUNTRY */
 
 if(s.items?.country){
+countryQty+=s.items.country.qty||0;
+
 itemsHTML+=`
 <div>🐓 Country ${s.items.country.qty}kg ₹${s.items.country.amount}</div>
 `;
@@ -949,6 +957,8 @@ itemsHTML+=`
 /* EGGS */
 
 if(s.items?.eggs){
+eggQty+=s.items.eggs.qty||0;
+
 itemsHTML+=`
 <div>🥚 Eggs ${s.items.eggs.qty} ₹${s.items.eggs.amount}</div>
 `;
@@ -957,6 +967,8 @@ itemsHTML+=`
 /* MASALA */
 
 if(s.items?.masala){
+masalaAmt+=s.items.masala.amount||0;
+
 itemsHTML+=`
 <div>🌶 Masala ₹${s.items.masala.amount}</div>
 `;
@@ -976,16 +988,22 @@ ${itemsHTML}
 
 });
 
+/* SUMMARY */
+
 todaySummary.innerHTML=`
 Total ₹ ${totalAmt.toFixed(2)} |
 Cash ₹ ${cashTotal.toFixed(2)} |
-Online ₹ ${onlineTotal.toFixed(2)}
+Online ₹ ${onlineTotal.toFixed(2)} |
+🐔 ${broilerQty.toFixed(2)}kg |
+🐓 ${countryQty.toFixed(2)}kg |
+🥚 ${eggQty} |
+🌶 ₹${masalaAmt.toFixed(2)} |
+Bills ${data.length}
 `;
 
 todayList.innerHTML=list||"No sales today";
 
 }
-
 
 async function loadLiveStock(){
 
