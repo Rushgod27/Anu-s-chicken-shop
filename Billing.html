@@ -897,19 +897,27 @@ async function loadTodaySales(){
 
 const q=query(
 collection(db,"sales"),
-where("date","==",getSaleDate()),
-orderBy("createdAt","desc")
+where("date","==",getSaleDate())
 );
 
 const snap=await getDocs(q);
 
-let totalAmt=0;
-
-let list="";
+let data=[];
 
 snap.forEach(d=>{
+data.push(d.data());
+});
 
-const s=d.data();
+/* sort newest first */
+
+data.sort((a,b)=>
+(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)
+);
+
+let totalAmt=0;
+let list="";
+
+data.forEach(s=>{
 
 totalAmt+=s.total||0;
 
@@ -922,10 +930,11 @@ list+=`
 });
 
 todaySummary.innerHTML="Total ₹ "+totalAmt.toFixed(2);
-
 todayList.innerHTML=list||"No sales today";
 
 }
+
+
 async function loadLiveStock(){
 
 const ref = doc(db,"stock_current","live");
