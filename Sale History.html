@@ -196,7 +196,11 @@ async function loadData(){
 
     if(!s.date) return;
 
-    if(s.date < from || s.date > to) return;
+const saleDate = new Date(s.date);
+const fromDate = new Date(from);
+const toDate = new Date(to);
+
+if(saleDate < fromDate || saleDate > toDate) return;
 
     totalSales += Number(s.total || 0);
     totalCost  += Number(s.totalCost || 0);
@@ -287,7 +291,9 @@ async function loadData(){
       }]
     }
   });
-
+bills.sort((a,b)=>
+(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)
+);
   const list = document.getElementById("billList");
 
   if(bills.length===0){
