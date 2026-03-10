@@ -196,11 +196,7 @@ async function loadData(){
 
     if(!s.date) return;
 
-const saleDate = new Date(s.date);
-const fromDate = new Date(from);
-const toDate = new Date(to);
-
-if(saleDate < fromDate || saleDate > toDate) return;
+if(s.date < from || s.date > to) return;
 
     totalSales += Number(s.total || 0);
     totalCost  += Number(s.totalCost || 0);
