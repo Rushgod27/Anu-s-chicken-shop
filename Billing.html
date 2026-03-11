@@ -1,103 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    
+
 <meta charset="UTF-8">
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
 <link rel="stylesheet" href="css/billing.css">
+
 <title>Anu’s Chicken Shop – Billing</title>
+
 </head>
 
 <body>
 
-<div>🐔 Anu’s Chicken Shop – Billing</div>
+<div class="pos-container">
 
-<div>
+<!-- LEFT PANEL -->
+<div class="left-panel">
 
-<div>
+<h2>🐔 Anu’s Chicken Shop – Billing</h2>
+
+<div class="stockBar">
 🐔 Broiler: <span id="stockBroiler">0</span> kg |
 🐓 Country: <span id="stockCountry">0</span> kg |
 🥚 Eggs: <span id="stockEggs">0</span> |
 🌶 Masala: <span id="stockMasala">0</span>
-
 </div>
-
-<br>
-
-<div>
 
 <h3>Today’s Prices</h3>
 
 <input type="date" id="saleDate">
 
-<br><br>
-
 <input id="broilerPrice" placeholder="Broiler Price / kg">
-
 <input id="countryPrice" placeholder="Country Price / kg">
-
 <input id="eggPrice" placeholder="Egg Price">
-
-<br><br>
 
 <button onclick="savePrices()">Save Prices</button>
 
-</div>
-
-<br>
-
-<div>
-
 <h3>Add Items</h3>
 
-<button onclick="toggleItem('broiler',this)">Broiler</button>
-
-<button onclick="toggleItem('country',this)">Country</button>
-
-<button onclick="toggleItem('egg',this)">Eggs</button>
-
-<button onclick="toggleItem('masala',this)">Masala</button>
-
-</div>
-
-<br>
+<button onclick="toggleItem('broiler')">Broiler</button>
+<button onclick="toggleItem('country')">Country</button>
+<button onclick="toggleItem('egg')">Eggs</button>
+<button onclick="toggleItem('masala')">Masala</button>
 
 <div id="broilerBox" style="display:none">
 
 <h3>Broiler</h3>
 
-<button onclick="setMode('broiler','kg',this)">KG</button>
-
-<button onclick="setMode('broiler','rs',this)">₹</button>
-
-<br><br>
+<button onclick="setMode('broiler','kg')">KG</button>
+<button onclick="setMode('broiler','rs')">₹</button>
 
 <input id="broilerKg" readonly>
-
 <input id="broilerRs" style="display:none" readonly>
 
 </div>
-
-<br>
 
 <div id="countryBox" style="display:none">
 
 <h3>Country</h3>
 
-<button onclick="setMode('country','kg',this)">KG</button>
-
-<button onclick="setMode('country','rs',this)">₹</button>
-
-<br><br>
+<button onclick="setMode('country','kg')">KG</button>
+<button onclick="setMode('country','rs')">₹</button>
 
 <input id="countryKg" readonly>
-
 <input id="countryRs" style="display:none" readonly>
 
 </div>
-
-<br>
 
 <div id="eggBox" style="display:none">
 
@@ -107,8 +77,6 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable
 
 </div>
 
-<br>
-
 <div id="masalaBox" style="display:none">
 
 <h3>Masala</h3>
@@ -117,81 +85,57 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable
 
 </div>
 
-<br>
-
-<div>
-
 <h3>Payment</h3>
 
-<button onclick="setPayment('cash',this)">Cash</button>
-
-<button onclick="setPayment('online',this)">Online</button>
-
-<br><br>
+<button onclick="setPayment('cash')">Cash</button>
+<button onclick="setPayment('online')">Online</button>
 
 <input id="received" style="display:none" readonly>
 
 <div id="returnBox" style="display:none">
-
 Return ₹ <span id="returnAmt">0.00</span>
-
 </div>
-
-</div>
-
-<br>
-
-<div>
 
 <h2>TOTAL ₹ <span id="total">0.00</span></h2>
 
 <button id="saleBtn" onclick="confirmSale()">SALE</button>
 
-</div>
-
-<br>
-
-<div>
-
 <h3>🧾 Today Sales</h3>
 
 <div id="todaySummary"></div>
-
-<br>
 
 <div id="todayList">Loading...</div>
 
 </div>
 
-</div>
 
-<br><br>
+<!-- RIGHT PANEL KEYPAD -->
+<div class="right-panel">
 
-<div>
+<div class="keypad">
 
 <button onclick="add('7')">7</button>
 <button onclick="add('8')">8</button>
 <button onclick="add('9')">9</button>
 
-<br>
-
 <button onclick="add('4')">4</button>
 <button onclick="add('5')">5</button>
 <button onclick="add('6')">6</button>
 
-<br>
-
 <button onclick="add('1')">1</button>
 <button onclick="add('2')">2</button>
 <button onclick="add('3')">3</button>
-
-<br>
 
 <button onclick="add('0')">0</button>
 <button onclick="add('.')">.</button>
 <button onclick="del()">⌫</button>
 
 </div>
+
+</div>
+
+</div>
+
 
 <script type="module">
 
@@ -212,7 +156,6 @@ projectId:"anus-chicken-shop"
 
 const db=getFirestore();
 
-
 /* DATE */
 
 const now=new Date();
@@ -232,7 +175,6 @@ loadTodaySales();
 function getSaleDate(){
 return saleDate.value || defaultDate;
 }
-
 
 let saleProcessing=false;
 
@@ -343,332 +285,32 @@ returnAmt.innerText=Math.abs(r).toFixed(2);
 }
 
 
-/* STOCK CHECK */
+/* TODAY SALES */
 
-async function checkStock(type,qty){
-
-const ref=doc(db,"stock_current","live");
-
-const snap=await getDoc(ref);
-
-const s=snap.data();
-
-let available=0;
-
-if(type==="broiler") available=s.broiler?.availableKg||0;
-if(type==="country") available=s.country?.availableKg||0;
-if(type==="eggs") available=s.eggs?.availableQty||0;
-if(type==="masala") available=s.masala?.availableQty||0;
-
-if(qty>available)
-throw new Error("Not enough stock for "+type);
-
-}
-
-
-/* FIFO */
-
-async function deductStock(type,quantity){
-
-let remaining=quantity;
-
-let totalCost=0;
+async function loadTodaySales(){
 
 const q=query(
-collection(db,"stock_entries"),
-where("type","==",type),
-where("status","==","active"),
-orderBy("createdAt","asc")
-);
-
-const snap=await getDocs(q);
-
-for(const d of snap.docs){
-
-if(remaining<=0)break;
-
-const batch=d.data();
-
-const available=
-(type==="broiler"||type==="country")
-?batch.remainingKg
-:batch.remainingQty;
-
-const take=Math.min(available,remaining);
-
-if(type==="broiler"||type==="country"){
-
-totalCost+=take*batch.costPerSellableKg;
-
-await updateDoc(d.ref,{
-remainingKg:available-take,
-status:(available-take)<=0?"closed":"active"
-});
-
-}else{
-
-totalCost+=take*batch.costPerUnit;
-
-await updateDoc(d.ref,{
-remainingQty:available-take,
-status:(available-take)<=0?"closed":"active"
-});
-
-}
-
-remaining-=take;
-
-}
-
-if(remaining>0) throw new Error("Insufficient stock");
-
-return +totalCost.toFixed(2);
-
-}
-
-
-/* LIVE STOCK */
-
-async function decreaseLiveStock(type,qty){
-
-const ref=doc(db,"stock_current","live");
-
-if(type==="broiler")
-await updateDoc(ref,{
-"broiler.availableKg":increment(-qty),
-"broiler.soldKg":increment(qty)
-});
-
-if(type==="country")
-await updateDoc(ref,{
-"country.availableKg":increment(-qty),
-"country.soldKg":increment(qty)
-});
-
-if(type==="eggs")
-await updateDoc(ref,{
-"eggs.availableQty":increment(-qty),
-"eggs.soldQty":increment(qty)
-});
-
-if(type==="masala")
-await updateDoc(ref,{
-"masala.availableQty":increment(-qty),
-"masala.soldQty":increment(qty)
-});
-
-}
-
-
-/* SALE */
-
-window.confirmSale=async()=>{
-
-if(saleProcessing) return;
-
-if(!broilerPrice.value || !countryPrice.value || !eggPrice.value){
-alert("Set today's prices first");
-return;
-}
-
-if(!payment){
-alert("Select payment method");
-return;
-}
-
-saleProcessing=true;
-
-saleBtn.disabled=true;
-
-try{
-
-let items={};
-let finalTotal=0;
-let totalCost=0;
-
-if(active.broiler){
-
-const rate=+broilerPrice.value;
-
-const qty=mode.broiler==="kg"
-?+broilerKg.value
-:(+broilerRs.value/rate||0);
-
-await checkStock("broiler",qty);
-
-const amount=qty*rate;
-
-const cost=await deductStock("broiler",qty);
-
-await decreaseLiveStock("broiler",qty);
-
-items.broiler={qty,rate,amount,cost};
-
-finalTotal+=amount;
-totalCost+=cost;
-
-}
-
-/* COUNTRY */
-
-if(active.country){
-
-const rate=+countryPrice.value;
-
-const qty=mode.country==="kg"
-?+countryKg.value
-:(+countryRs.value/rate||0);
-
-await checkStock("country",qty);
-
-const amount=qty*rate;
-
-const cost=await deductStock("country",qty);
-
-await decreaseLiveStock("country",qty);
-
-items.country={qty,rate,amount,cost};
-
-finalTotal+=amount;
-totalCost+=cost;
-
-}
-
-/* EGGS */
-
-if(active.egg){
-
-const qty=+eggQty.value||0;
-
-await checkStock("eggs",qty);
-
-const rate=+eggPrice.value;
-
-const amount=qty*rate;
-
-const cost=await deductStock("eggs",qty);
-
-await decreaseLiveStock("eggs",qty);
-
-items.eggs={qty,rate,amount,cost};
-
-finalTotal+=amount;
-totalCost+=cost;
-
-}
-
-/* MASALA */
-
-if(active.masala){
-
-const amount=+masalaAmt.value||0;
-
-const qty=1;
-
-await checkStock("masala",qty);
-
-const cost=await deductStock("masala",qty);
-
-await decreaseLiveStock("masala",qty);
-
-items.masala={qty,amount,cost};
-
-finalTotal+=amount;
-totalCost+=cost;
-
-}
-
-
-const profit=finalTotal-totalCost;
-
-await addDoc(collection(db,"sales"),{
-
-date:getSaleDate(),
-items,
-total:+finalTotal.toFixed(2),
-totalCost:+totalCost.toFixed(2),
-profit:+profit.toFixed(2),
-payment,
-createdAt:serverTimestamp()
-
-});
-
-alert("Sale saved");
-
-location.reload();
-
-}catch(e){
-
-alert(e.message);
-
-}
-
-saleProcessing=false;
-
-saleBtn.disabled=false;
-
-};
-
-
-/* PRICES */
-
-window.savePrices=async()=>{
-
-if(!broilerPrice.value||!countryPrice.value||!eggPrice.value){
-
-alert("Enter all prices");
-
-return;
-
-}
-
-await addDoc(collection(db,"dailyPrices"),{
-
-date:getSaleDate(),
-
-broilerPrice:+broilerPrice.value,
-countryPrice:+countryPrice.value,
-eggPrice:+eggPrice.value,
-
-updatedAtMs:Date.now(),
-createdAt:serverTimestamp()
-
-});
-
-alert("Prices saved");
-
-loadTodayPrices();
-
-};
-
-
-async function loadTodayPrices(){
-
-const q=query(
-collection(db,"dailyPrices"),
+collection(db,"sales"),
 where("date","==",getSaleDate())
 );
 
 const snap=await getDocs(q);
 
-let latest=null;
+let list="";
 
 snap.forEach(d=>{
 
-const data=d.data();
+const s=d.data();
 
-if(!latest||data.updatedAtMs>latest.updatedAtMs)
-latest=data;
+list+=`
+<div>
+${s.date} — ₹${s.total}
+</div>
+`;
 
 });
 
-if(latest){
-
-broilerPrice.value=latest.broilerPrice;
-countryPrice.value=latest.countryPrice;
-eggPrice.value=latest.eggPrice;
-
-}
+todayList.innerHTML=list || "No sales today";
 
 }
 
