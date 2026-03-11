@@ -28,22 +28,25 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable
 🌶 Masala: <span id="stockMasala">0</span>
 </div>
 
-<h3>Today’s Prices</h3>
+
+<h3>Today's Prices</h3>
 
 <input type="date" id="saleDate">
 
-<input id="broilerPrice" placeholder="Broiler Price / kg">
-<input id="countryPrice" placeholder="Country Price / kg">
-<input id="eggPrice" placeholder="Egg Price">
+<input id="broilerPrice" placeholder="Broiler Price / kg" readonly>
+<input id="countryPrice" placeholder="Country Price / kg" readonly>
+<input id="eggPrice" placeholder="Egg Price" readonly>
 
 <button onclick="savePrices()">Save Prices</button>
 
+
 <h3>Add Items</h3>
 
-<button onclick="toggleItem('broiler')">Broiler</button>
-<button onclick="toggleItem('country')">Country</button>
-<button onclick="toggleItem('egg')">Eggs</button>
-<button onclick="toggleItem('masala')">Masala</button>
+<button onclick="toggleItem('broiler',this)">Broiler</button>
+<button onclick="toggleItem('country',this)">Country</button>
+<button onclick="toggleItem('egg',this)">Eggs</button>
+<button onclick="toggleItem('masala',this)">Masala</button>
+
 
 <div id="broilerBox" style="display:none">
 
@@ -53,9 +56,10 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable
 <button onclick="setMode('broiler','rs')">₹</button>
 
 <input id="broilerKg" readonly>
-<input id="broilerRs" style="display:none" readonly>
+<input id="broilerRs" readonly style="display:none">
 
 </div>
+
 
 <div id="countryBox" style="display:none">
 
@@ -65,9 +69,10 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable
 <button onclick="setMode('country','rs')">₹</button>
 
 <input id="countryKg" readonly>
-<input id="countryRs" style="display:none" readonly>
+<input id="countryRs" readonly style="display:none">
 
 </div>
+
 
 <div id="eggBox" style="display:none">
 
@@ -77,6 +82,7 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable
 
 </div>
 
+
 <div id="masalaBox" style="display:none">
 
 <h3>Masala</h3>
@@ -85,31 +91,34 @@ content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable
 
 </div>
 
+
 <h3>Payment</h3>
 
 <button onclick="setPayment('cash')">Cash</button>
 <button onclick="setPayment('online')">Online</button>
 
-<input id="received" style="display:none" readonly>
+<input id="received" readonly style="display:none">
 
 <div id="returnBox" style="display:none">
 Return ₹ <span id="returnAmt">0.00</span>
 </div>
 
+
 <h2>TOTAL ₹ <span id="total">0.00</span></h2>
 
 <button id="saleBtn" onclick="confirmSale()">SALE</button>
 
+
 <h3>🧾 Today Sales</h3>
 
 <div id="todaySummary"></div>
-
 <div id="todayList">Loading...</div>
 
 </div>
 
 
 <!-- RIGHT PANEL KEYPAD -->
+
 <div class="right-panel">
 
 <div class="keypad">
@@ -156,6 +165,7 @@ projectId:"anus-chicken-shop"
 
 const db=getFirestore();
 
+
 /* DATE */
 
 const now=new Date();
@@ -172,9 +182,11 @@ loadTodayPrices();
 loadTodaySales();
 });
 
+
 function getSaleDate(){
 return saleDate.value || defaultDate;
 }
+
 
 let saleProcessing=false;
 
@@ -183,7 +195,23 @@ let saleProcessing=false;
 
 let activeInput=null;
 
-document.querySelectorAll("input").forEach(i=>i.onclick=()=>activeInput=i);
+
+/* DISABLE SYSTEM KEYBOARD */
+
+document.querySelectorAll("input").forEach(i=>{
+i.setAttribute("readonly",true);
+
+i.addEventListener("touchstart",e=>{
+e.preventDefault();
+activeInput=i;
+});
+});
+
+
+document.addEventListener("keydown",e=>{
+e.preventDefault();
+});
+
 
 window.add=v=>{
 if(activeInput){
@@ -191,6 +219,7 @@ activeInput.value+=v;
 calc();
 }
 };
+
 
 window.del=()=>{
 if(activeInput){
@@ -204,12 +233,17 @@ calc();
 
 let active={broiler:false,country:false,egg:false,masala:false};
 
-window.toggleItem=(t)=>{
+
+window.toggleItem=(t,btn)=>{
 
 active[t]=!active[t];
 
 document.getElementById(t+"Box").style.display=
 active[t]?"block":"none";
+
+btn.classList.toggle("active");
+
+updateActiveInput();
 
 calc();
 
@@ -230,6 +264,8 @@ m==="kg"?"block":"none";
 document.getElementById(t+"Rs").style.display=
 m==="rs"?"block":"none";
 
+updateActiveInput();
+
 };
 
 
@@ -242,10 +278,26 @@ window.setPayment=(p)=>{
 payment=p;
 
 received.style.display=p==="cash"?"block":"none";
-
 returnBox.style.display=p==="cash"?"block":"none";
 
+updateActiveInput();
+
 };
+
+
+/* AUTO INPUT SELECT */
+
+function updateActiveInput(){
+
+if(active.broiler && mode.broiler==="kg") activeInput=broilerKg;
+else if(active.broiler && mode.broiler==="rs") activeInput=broilerRs;
+else if(active.country && mode.country==="kg") activeInput=countryKg;
+else if(active.country && mode.country==="rs") activeInput=countryRs;
+else if(active.egg) activeInput=eggQty;
+else if(active.masala) activeInput=masalaAmt;
+else if(payment==="cash") activeInput=received;
+
+}
 
 
 /* CALCULATE */
@@ -299,15 +351,13 @@ const snap=await getDocs(q);
 let list="";
 
 snap.forEach(d=>{
-
 const s=d.data();
 
 list+=`
-<div>
+<div class="saleCard">
 ${s.date} — ₹${s.total}
 </div>
 `;
-
 });
 
 todayList.innerHTML=list || "No sales today";
@@ -331,6 +381,7 @@ stockEggs.innerText=(s.eggs?.availableQty||0);
 stockMasala.innerText=(s.masala?.availableQty||0);
 
 }
+
 
 loadTodayPrices();
 loadTodaySales();
