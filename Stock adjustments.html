@@ -5,130 +5,29 @@
 <title>Stock Reconciliation</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
+<link rel="stylesheet" href="style.css">
 
-/* ===== GLOBAL ===== */
-
-body{
-margin:0;
-font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-background:linear-gradient(135deg,#eef2ff,#f8fafc);
-color:#1f2937;
-}
-
-/* ===== HEADER ===== */
-
-.header{
-background:linear-gradient(135deg,#0f766e,#14b8a6);
-color:#fff;
-padding:18px;
-font-size:24px;
-font-weight:900;
-text-align:center;
-box-shadow:0 4px 10px rgba(0,0,0,0.1);
-}
-
-/* ===== LAYOUT ===== */
-
-.container{
-max-width:1000px;
-margin:auto;
-padding:16px;
-}
-
-/* ===== CARD ===== */
-
-.card{
-background:#fff;
-padding:18px;
-border-radius:16px;
-margin-bottom:16px;
-box-shadow:0 6px 14px rgba(0,0,0,0.05);
-}
-
-/* ===== STOCK BLOCK ===== */
-
-.stock-block{
-background:#f8fafc;
-padding:14px;
-border-radius:12px;
-margin-bottom:14px;
-border-left:4px solid #14b8a6;
-}
-
-.stock-title{
-font-weight:900;
-font-size:18px;
-margin-bottom:6px;
-}
-
-/* ===== INPUT ===== */
-
-input{
-width:100%;
-padding:10px;
-border-radius:8px;
-border:1px solid #d1d5db;
-margin-top:6px;
-margin-bottom:10px;
-font-size:15px;
-}
-
-/* ===== BUTTON ===== */
-
-button{
-padding:10px 14px;
-border:none;
-border-radius:10px;
-background:#16a34a;
-color:#fff;
-font-weight:800;
-cursor:pointer;
-transition:0.2s;
-}
-
-button:hover{
-background:#15803d;
-}
-
-/* ===== LOG ===== */
-
-.log-entry{
-background:#f8fafc;
-padding:10px;
-border-radius:8px;
-margin-bottom:8px;
-font-size:14px;
-}
-
-.positive{
-color:#16a34a;
-font-weight:900;
-}
-
-.negative{
-color:#dc2626;
-font-weight:900;
-}
-
-</style>
 </head>
 
 <body>
 
-<div class="header">📦 Stock Reconciliation</div>
+<h2>📦 Stock Reconciliation</h2>
 
-<div class="container">
+<div>
 
-<div class="card">
 <h3>Adjust Physical Stock</h3>
+
 <div id="reconciliationSection">Loading stock...</div>
+
 </div>
 
-<div class="card">
+<br>
+
+<div>
+
 <h3>📜 Adjustment History</h3>
+
 <div id="adjustmentLog">Loading...</div>
-</div>
 
 </div>
 
@@ -141,6 +40,7 @@ import {
 getFirestore,
 collection,
 getDocs,
+getDoc,
 addDoc,
 doc,
 updateDoc,
@@ -149,13 +49,15 @@ serverTimestamp
 }
 from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
+
 initializeApp({
 apiKey:"AIzaSyComVLxo36wvogoBFEoWyea-_yESW9BIPU",
 authDomain:"anus-chicken-shop.firebaseapp.com",
 projectId:"anus-chicken-shop"
 });
 
-const db=getFirestore();
+const db = getFirestore();
+
 
 /* ===============================
 LOAD CURRENT STOCK
@@ -167,18 +69,16 @@ const container=document.getElementById("reconciliationSection");
 
 try{
 
-const snap=await getDocs(collection(db,"stock_current"));
+const ref = doc(db,"stock_current","live");
 
-let live=null;
+const snap = await getDoc(ref);
 
-snap.forEach(d=>{
-if(d.id==="live") live=d.data();
-});
-
-if(!live){
+if(!snap.exists()){
 container.innerHTML="Live stock not found";
 return;
 }
+
+const live = snap.data();
 
 const totals={
 broiler:live.broiler?.availableKg||0,
@@ -187,15 +87,17 @@ eggs:live.eggs?.availableQty||0,
 masala:live.masala?.availableQty||0
 };
 
-container.innerHTML=
+container.innerHTML = Object.keys(totals).map(item=>`
 
-Object.keys(totals).map(item=>`
+<div>
 
-<div class="stock-block">
+<b>${item.toUpperCase()}</b>
 
-<div class="stock-title">${item.toUpperCase()}</div>
+<br>
 
 App Stock: <b>${totals[item].toFixed(2)}</b>
+
+<br><br>
 
 <input type="number" step="0.01"
 id="physical-${item}"
@@ -211,6 +113,8 @@ Record Adjustment
 
 </div>
 
+<br>
+
 `).join("");
 
 }catch(e){
@@ -223,36 +127,38 @@ container.innerHTML="Error loading stock";
 
 }
 
+
 /* ===============================
 ADJUST STOCK
 =============================== */
 
-window.adjust=async(item,current)=>{
+window.adjust = async(item,current)=>{
 
-const physical=
-Number(document.getElementById(`physical-${item}`).value)||0;
+const physical = Number(document.getElementById(`physical-${item}`).value)||0;
 
-const reason=
-document.getElementById(`reason-${item}`).value||
+const reason =
+document.getElementById(`reason-${item}`).value ||
 "Manual correction";
 
-const difference=physical-current;
-
-if(difference===0){
-
-alert("No difference found");
-
+if(physical < 0){
+alert("Invalid quantity");
 return;
-
 }
 
-const type=difference>0?"positive":"negative";
+const difference = physical - current;
 
-const today=new Date().toISOString().slice(0,10);
+if(difference === 0){
+alert("No difference found");
+return;
+}
+
+const type = difference > 0 ? "positive" : "negative";
+
+const today = new Date().toISOString().slice(0,10);
 
 try{
 
-/* LOG ADJUSTMENT */
+/* SAVE ADJUSTMENT LOG */
 
 await addDoc(collection(db,"stock_adjustments"),{
 
@@ -265,40 +171,33 @@ createdAt:serverTimestamp()
 
 });
 
+
 /* UPDATE LIVE STOCK */
 
-const ref=doc(db,"stock_current","live");
+const ref = doc(db,"stock_current","live");
 
 if(item==="broiler"){
-
 await updateDoc(ref,{
 "broiler.availableKg":increment(difference)
 });
-
 }
 
 if(item==="country"){
-
 await updateDoc(ref,{
 "country.availableKg":increment(difference)
 });
-
 }
 
 if(item==="eggs"){
-
 await updateDoc(ref,{
 "eggs.availableQty":increment(difference)
 });
-
 }
 
 if(item==="masala"){
-
 await updateDoc(ref,{
 "masala.availableQty":increment(difference)
 });
-
 }
 
 alert("Stock corrected successfully");
@@ -315,6 +214,7 @@ alert("Adjustment failed");
 
 };
 
+
 /* ===============================
 LOAD ADJUSTMENT HISTORY
 =============================== */
@@ -323,43 +223,40 @@ async function loadLog(){
 
 try{
 
-const snap=await getDocs(collection(db,"stock_adjustments"));
+const snap = await getDocs(collection(db,"stock_adjustments"));
 
-const container=document.getElementById("adjustmentLog");
+const container = document.getElementById("adjustmentLog");
 
 if(snap.empty){
-
 container.innerHTML="No adjustments yet";
-
 return;
-
 }
 
-const docs=snap.docs.slice().reverse();
+const docs = snap.docs.slice().reverse();
 
-container.innerHTML=docs.map(d=>{
+container.innerHTML = docs.map(d=>{
 
-const a=d.data();
+const a = d.data();
 
 return`
 
-<div class="log-entry">
+<div>
 
 ${a.date} – ${a.item.toUpperCase()}
 
-<span class="${
-a.type==="positive"?"positive":"negative"
-}">
+<b>
 
 ${a.type==="positive"?"+":"-"}${a.quantity}
 
-</span>
+</b>
 
 <br>
 
 Reason: ${a.reason||"N/A"}
 
 </div>
+
+<br>
 
 `;
 
@@ -372,6 +269,7 @@ console.error(e);
 }
 
 }
+
 
 /* ===============================
 INITIAL LOAD
