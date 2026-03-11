@@ -3,72 +3,17 @@
 <head>
 <meta charset="UTF-8">
 <title>Wastage Management</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<style>
+<link rel="stylesheet" href="style.css">
 
-body{
-margin:0;
-font-family:system-ui;
-background:#f1f5f9;
-}
-
-.header{
-background:#dc2626;
-color:white;
-padding:18px;
-font-size:24px;
-font-weight:900;
-text-align:center;
-}
-
-.container{
-max-width:800px;
-margin:auto;
-padding:16px;
-}
-
-.card{
-background:white;
-padding:18px;
-border-radius:16px;
-margin-bottom:20px;
-box-shadow:0 4px 10px rgba(0,0,0,0.05);
-}
-
-input,select,button{
-width:100%;
-padding:12px;
-margin:8px 0;
-border-radius:10px;
-border:1px solid #ddd;
-font-size:16px;
-}
-
-button{
-background:#dc2626;
-color:white;
-font-weight:800;
-border:none;
-cursor:pointer;
-}
-
-.log{
-background:#f8fafc;
-padding:10px;
-border-radius:10px;
-margin-bottom:8px;
-}
-
-</style>
 </head>
 
 <body>
 
-<div class="header">⚠ Wastage Management</div>
+<h2>⚠ Wastage Management</h2>
 
-<div class="container">
-
-<div class="card">
+<div>
 
 <h3>Add Wastage</h3>
 
@@ -79,7 +24,11 @@ margin-bottom:8px;
 <option value="masala">Masala</option>
 </select>
 
+<br><br>
+
 <input type="number" id="qty" placeholder="Quantity">
+
+<br><br>
 
 <select id="reason">
 <option value="died">Died</option>
@@ -89,21 +38,21 @@ margin-bottom:8px;
 <option value="other">Other</option>
 </select>
 
+<br><br>
+
 <button onclick="addWastage()">Record Wastage</button>
 
 </div>
 
+<br><br>
 
-<div class="card">
+<div>
 
 <h3>Wastage History</h3>
 
 <div id="logList">Loading...</div>
 
 </div>
-
-</div>
-
 
 <script type="module">
 
@@ -117,7 +66,8 @@ getDocs,
 doc,
 updateDoc,
 increment,
-serverTimestamp
+serverTimestamp,
+getDoc
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 
@@ -130,18 +80,54 @@ projectId:"anus-chicken-shop"
 const db = getFirestore();
 
 
-/* ADD WASTAGE */
+/* ===============================
+CHECK STOCK BEFORE WASTAGE
+=============================== */
+
+async function checkStock(product,qty){
+
+const ref = doc(db,"stock_current","live");
+
+const snap = await getDoc(ref);
+
+if(!snap.exists()) return true;
+
+const s = snap.data();
+
+let available = 0;
+
+if(product==="broiler") available = s.broiler?.availableKg || 0;
+if(product==="country") available = s.country?.availableKg || 0;
+if(product==="eggs") available = s.eggs?.availableQty || 0;
+if(product==="masala") available = s.masala?.availableQty || 0;
+
+if(qty > available){
+throw new Error("Not enough stock available");
+}
+
+}
+
+
+/* ===============================
+ADD WASTAGE
+=============================== */
 
 window.addWastage = async () => {
 
 const product = document.getElementById("product").value;
+
 const qty = +document.getElementById("qty").value || 0;
+
 const reason = document.getElementById("reason").value;
 
 if(qty <= 0){
 alert("Enter valid quantity");
 return;
 }
+
+try{
+
+await checkStock(product,qty);
 
 const today = new Date().toISOString().slice(0,10);
 
@@ -164,47 +150,45 @@ createdAt:serverTimestamp()
 const ref = doc(db,"stock_current","live");
 
 if(product==="broiler"){
-
 await updateDoc(ref,{
 "broiler.availableKg":increment(-qty)
 });
-
 }
 
 if(product==="country"){
-
 await updateDoc(ref,{
 "country.availableKg":increment(-qty)
 });
-
 }
 
 if(product==="eggs"){
-
 await updateDoc(ref,{
 "eggs.availableQty":increment(-qty)
 });
-
 }
 
 if(product==="masala"){
-
 await updateDoc(ref,{
 "masala.availableQty":increment(-qty)
 });
-
 }
-
 
 alert("Wastage recorded");
 
 location.reload();
 
+}catch(e){
+
+alert(e.message);
+
+}
+
 };
 
 
-
-/* LOAD HISTORY */
+/* ===============================
+LOAD HISTORY
+=============================== */
 
 async function loadLogs(){
 
@@ -224,13 +208,23 @@ list.innerHTML = docs.map(d=>{
 const w = d.data();
 
 return `
-<div class="log">
 
-${w.date} — ${w.product.toUpperCase()}  
-Qty: ${w.quantity}  
+<div>
+
+${w.date} — ${w.product.toUpperCase()}
+
+<br>
+
+Qty: ${w.quantity}
+
+<br>
+
 Reason: ${w.reason}
 
 </div>
+
+<br>
+
 `;
 
 }).join("");
