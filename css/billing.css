@@ -1,155 +1,171 @@
-/* ===============================
-GLOBAL
-=============================== */
+/* ===== GLOBAL ===== */
 
 body{
 margin:0;
 font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-background:linear-gradient(135deg,#eef2ff,#f8fafc);
-color:#1f2937;
+background:#f1f5f9;
+color:#111827;
 }
 
-/* ===============================
-HEADER
-=============================== */
+/* ===== POS LAYOUT ===== */
 
-body > div:first-child{
-background:linear-gradient(135deg,#f59e0b,#fbbf24);
-padding:18px;
-text-align:center;
-font-size:24px;
-font-weight:900;
-box-shadow:0 4px 12px rgba(0,0,0,0.08);
+.pos-container{
+display:flex;
+height:100vh;
 }
 
-/* ===============================
-MAIN WRAPPER
-=============================== */
+/* ===== LEFT PANEL ===== */
 
-body > div:nth-child(2){
-max-width:1100px;
-margin:auto;
-padding:18px;
+.left-panel{
+width:60%;
+padding:20px;
+overflow-y:auto;
+background:#f8fafc;
 }
 
-/* ===============================
-STOCK BAR
-=============================== */
+/* ===== RIGHT PANEL ===== */
 
-body > div:nth-child(2) > div:first-child{
+.right-panel{
+width:40%;
+background:#111827;
+display:flex;
+align-items:center;
+justify-content:center;
+}
+
+/* ===== STOCK BAR ===== */
+
+.stockBar{
 background:white;
 padding:10px;
 border-radius:10px;
-margin-bottom:18px;
+margin-bottom:15px;
 font-weight:700;
-box-shadow:0 4px 10px rgba(0,0,0,0.05);
+box-shadow:0 2px 6px rgba(0,0,0,0.05);
 }
 
-/* ===============================
-SECTION CARDS
-=============================== */
+/* ===== HEADINGS ===== */
 
-h3{
+h2{
 margin-top:0;
 }
 
-body > div:nth-child(2) > div{
-background:white;
-padding:16px;
-border-radius:14px;
-margin-bottom:16px;
-box-shadow:0 4px 12px rgba(0,0,0,0.05);
+h3{
+margin-bottom:6px;
+margin-top:18px;
 }
 
-/* ===============================
-INPUTS
-=============================== */
+/* ===== INPUTS ===== */
 
 input{
 width:100%;
 padding:12px;
-margin:6px 0;
+font-size:16px;
 border-radius:10px;
 border:1px solid #d1d5db;
-font-size:16px;
+margin-top:6px;
+margin-bottom:10px;
+box-sizing:border-box;
+background:#f9fafb;
 }
 
-/* ===============================
-BUTTONS
-=============================== */
+/* ===== BUTTONS ===== */
 
 button{
-padding:10px 14px;
-margin:4px;
+padding:12px 16px;
 border:none;
 border-radius:10px;
 font-weight:700;
+cursor:pointer;
+margin:4px 4px 4px 0;
 background:#4f46e5;
 color:white;
-cursor:pointer;
-transition:0.2s;
 }
 
-button:hover{
-background:#4338ca;
+/* ===== ACTIVE ITEM BUTTON ===== */
+
+button.active{
+background:#f59e0b;
+color:#111827;
 }
 
-/* ===============================
-TOTAL
-=============================== */
-
-h2{
-background:#eef2ff;
-padding:14px;
-border-radius:12px;
-font-weight:900;
-text-align:center;
-}
-
-/* ===============================
-SALE BUTTON
-=============================== */
+/* ===== SALE BUTTON ===== */
 
 #saleBtn{
 width:100%;
 padding:16px;
 font-size:20px;
 background:#16a34a;
+margin-top:10px;
 }
 
-#saleBtn:hover{
-background:#15803d;
+/* ===== TOTAL ===== */
+
+h2 span{
+color:#16a34a;
 }
 
-/* ===============================
-TODAY SALES
-=============================== */
+/* ===== TODAY SALES CARDS ===== */
 
-#todayList div{
-background:#f8fafc;
+.saleCard{
+background:white;
 padding:10px;
-border-radius:8px;
-margin-bottom:6px;
+border-radius:10px;
+margin-bottom:8px;
+box-shadow:0 2px 6px rgba(0,0,0,0.05);
+font-weight:600;
 }
 
-/* ===============================
-KEYPAD
-=============================== */
+/* ===== KEYPAD ===== */
 
-body > div:last-child{
-max-width:320px;
-margin:20px auto;
+.keypad{
+width:90%;
 display:grid;
 grid-template-columns:repeat(3,1fr);
-gap:10px;
+gap:20px;
 }
 
-body > div:last-child button{
-font-size:22px;
-padding:16px;
-background:#111827;
-}
+/* ===== KEYPAD BUTTONS ===== */
 
-body > div:last-child button:hover{
+.keypad button{
+font-size:38px;
+font-weight:900;
+padding:30px;
+border-radius:20px;
 background:#374151;
+color:white;
+}
+
+/* ===== DELETE BUTTON ===== */
+
+.keypad button:last-child{
+background:#ef4444;
+}
+
+/* ===== MOBILE FALLBACK ===== */
+
+@media (max-width:1000px){
+
+.pos-container{
+flex-direction:column;
+}
+
+.left-panel{
+width:100%;
+}
+
+.right-panel{
+width:100%;
+padding:20px;
+}
+
+.keypad{
+grid-template-columns:repeat(3,1fr);
+}
+
+.keypad button{
+padding:22px;
+font-size:28px;
+}
+
 }
