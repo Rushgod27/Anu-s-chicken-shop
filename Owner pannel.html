@@ -2,121 +2,134 @@
 <html>
 <head>
 <meta charset="UTF-8">
-<title>Owner Dashboard</title>
-<meta name="viewport" content="width=device-width, initial-scale=1">
-
+<title>Sales Intelligence Dashboard</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
-
 body{
-margin:0;
-font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-background:#f1f5f9;
+  margin:0;
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+  background:linear-gradient(135deg,#eef2ff,#f8fafc);
+  color:#1f2937;
 }
-
 .header{
-background:#111827;
-color:white;
-padding:18px;
-font-size:24px;
-font-weight:900;
-text-align:center;
+  background:linear-gradient(135deg,#111827,#1f2937);
+  color:#fff;
+  padding:18px;
+  font-size:22px;
+  font-weight:900;
+  text-align:center;
 }
-
-.container{
-max-width:1200px;
-margin:auto;
-padding:16px;
-}
-
-.grid{
-display:grid;
-grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-gap:16px;
-}
-
+.container{max-width:1300px;margin:auto;padding:20px}
 .card{
-background:white;
-padding:16px;
-border-radius:16px;
-box-shadow:0 4px 12px rgba(0,0,0,0.06);
+  background:#fff;
+  padding:20px;
+  border-radius:18px;
+  margin-bottom:20px;
+  box-shadow:0 6px 18px rgba(0,0,0,0.06);
 }
-
-.title{
-font-size:13px;
-color:#6b7280;
+.grid{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:15px;
 }
-
-.value{
-font-size:24px;
-font-weight:900;
-margin-top:4px;
+.kpi{
+  background:#f9fafb;
+  padding:14px;
+  border-radius:12px;
 }
-
-.stock{
-font-size:18px;
-font-weight:800;
+.kpi-title{
+  font-size:13px;
+  color:#6b7280;
 }
-
-.warning{
-color:#b91c1c;
-font-weight:800;
+.kpi-value{
+  font-size:20px;
+  font-weight:900;
 }
-
+.bill{
+  background:#f8fafc;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:10px;
+  border-left:4px solid #4f46e5;
+}
+.bill-head{
+  display:flex;
+  justify-content:space-between;
+  font-weight:800;
+}
+button{
+  padding:8px 14px;
+  border:none;
+  border-radius:6px;
+  background:#4f46e5;
+  color:white;
+  font-weight:700;
+  cursor:pointer;
+}
+input[type="date"]{
+  padding:8px 10px;
+  border-radius:6px;
+  border:1px solid #ddd;
+  margin-right:10px;
+}
 </style>
 </head>
 
 <body>
 
-<div class="header">📊 Owner Dashboard</div>
+<div class="header">📊 Anu’s Chicken Shop – Intelligence Dashboard</div>
 
 <div class="container">
 
-<div class="grid">
-
 <div class="card">
-<div class="title">Today Sales</div>
-<div class="value">₹ <span id="todaySales">0</span></div>
-</div>
-
-<div class="card">
-<div class="title">Today Profit</div>
-<div class="value">₹ <span id="todayProfit">0</span></div>
+  <h3>Date Range Filter</h3>
+  <input type="date" id="fromDate">
+  <input type="date" id="toDate">
+  <button onclick="loadData()">Load</button>
 </div>
 
 <div class="card">
-<div class="title">Supplier Dues</div>
-<div class="value">₹ <span id="supplierDue">0</span></div>
+  <h3>Executive Summary</h3>
+  <div class="grid">
+    <div class="kpi">
+      <div class="kpi-title">Total Sales</div>
+      <div class="kpi-value">₹ <span id="totalSales">0</span></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Total Profit</div>
+      <div class="kpi-value">₹ <span id="totalProfit">0</span></div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Broiler Available (as of End Date)</div>
+      <div class="kpi-value"><span id="broilerAvailable">0</span> kg</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Country Available (as of End Date)</div>
+      <div class="kpi-value"><span id="countryAvailable">0</span> kg</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-title">Eggs Available (as of End Date)</div>
+      <div class="kpi-value"><span id="eggAvailable">0</span></div>
+    </div>
+  </div>
 </div>
 
 <div class="card">
-<div class="title">Monthly Expenses</div>
-<div class="value">₹ <span id="monthExpense">0</span></div>
-</div>
-
-</div>
-
-
-<div class="card">
-<h3>📦 Current Inventory</h3>
-
-<div class="grid">
-
-<div class="stock">🐔 Broiler: <span id="broilerStock">0</span> kg</div>
-<div class="stock">🐓 Country: <span id="countryStock">0</span> kg</div>
-<div class="stock">🥚 Eggs: <span id="eggStock">0</span></div>
-<div class="stock">🌶 Masala: <span id="masalaStock">0</span></div>
-
-</div>
-
-<div id="alerts"></div>
-
+  <h3>Sales & Profit Trend</h3>
+  <canvas id="salesChart"></canvas>
+  <canvas id="profitChart"></canvas>
 </div>
 
 <div class="card">
-<h3>📈 Last 7 Days Sales</h3>
-<canvas id="salesChart"></canvas>
+  <h3>Product Profit Contribution</h3>
+  <canvas id="productPie"></canvas>
+</div>
+
+<div class="card">
+  <h3>Bills</h3>
+  <div id="billList">Loading...</div>
 </div>
 
 </div>
@@ -124,99 +137,159 @@ font-weight:800;
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
-import {
-getFirestore, collection, getDocs
-} from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+import { getFirestore, collection, getDocs } 
+from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
 
 initializeApp({
-apiKey:"AIzaSyComVLxo36wvogoBFEoWyea-_yESW9BIPU",
-authDomain:"anus-chicken-shop.firebaseapp.com",
-projectId:"anus-chicken-shop"
+  apiKey:"YOUR_API_KEY",
+  authDomain:"anus-chicken-shop.firebaseapp.com",
+  projectId:"anus-chicken-shop"
 });
 
-const db=getFirestore();
+const db = getFirestore();
 
-const today=new Date().toISOString().slice(0,10);
+let salesChart=null;
+let profitChart=null;
+let productPieChart=null;
 
-async function loadDashboard(){
-
-let todaySales=0;
-let todayProfit=0;
-
-let broiler=0,country=0,eggs=0,masala=0;
-
-let supplierDue=0;
-let monthExpense=0;
-
-const salesSnap=await getDocs(collection(db,"sales"));
-salesSnap.forEach(d=>{
-const s=d.data();
-
-if(s.date===today){
-todaySales+=s.total||0;
-todayProfit+=s.profit||0;
-}
-});
-
-document.getElementById("todaySales").innerText=todaySales.toFixed(2);
-document.getElementById("todayProfit").innerText=todayProfit.toFixed(2);
-
-
-const stockSnap=await getDocs(collection(db,"stock_entries"));
-stockSnap.forEach(d=>{
-const s=d.data();
-
-if(s.type==="broiler") broiler+=s.remainingKg||0;
-if(s.type==="country") country+=s.remainingKg||0;
-if(s.type==="eggs") eggs+=s.remainingQty||0;
-if(s.type==="masala") masala+=s.remainingQty||0;
-
-if(s.paymentStatus==="credit"){
-
-const paid=(s.payments||[])
-.reduce((a,p)=>a+(p.amount||0),0);
-
-supplierDue+=(s.totalCost||0)-paid;
-
+function today(){
+  const d=new Date();
+  return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
 }
 
-});
+fromDate.value=today();
+toDate.value=today();
 
-document.getElementById("broilerStock").innerText=broiler.toFixed(2);
-document.getElementById("countryStock").innerText=country.toFixed(2);
-document.getElementById("eggStock").innerText=eggs;
-document.getElementById("masalaStock").innerText=masala;
+async function loadData(){
 
-document.getElementById("supplierDue").innerText=supplierDue.toFixed(2);
+  const from = fromDate.value;
+  const to   = toDate.value;
 
+  const salesSnap = await getDocs(collection(db,"sales"));
+  const stockSnap = await getDocs(collection(db,"stock_entries"));
 
-const expSnap=await getDocs(collection(db,"expenses"));
+  let totalSales=0,totalProfit=0;
+  let broilerSoldTotal=0,countrySoldTotal=0,eggSoldTotal=0;
 
-const now=new Date();
+  let broilerProfit=0,countryProfit=0,eggProfit=0,masalaProfit=0;
+  let daily={};
+  let bills=[];
 
-expSnap.forEach(d=>{
-const e=d.data();
-const dt=new Date(e.date);
+  // ========= SALES =========
+  salesSnap.forEach(doc=>{
+    const s=doc.data();
+    if(!s.date) return;
 
-if(dt.getMonth()===now.getMonth()){
-monthExpense+=e.amount||0;
+    // cumulative (for stock)
+    if(s.date <= to){
+      if(s.items?.broiler) broilerSoldTotal += Number(s.items.broiler.qty)||0;
+      if(s.items?.country) countrySoldTotal += Number(s.items.country.qty)||0;
+      if(s.items?.eggs) eggSoldTotal += Number(s.items.eggs.qty)||0;
+    }
+
+    // range filter
+    if(s.date < from || s.date > to) return;
+
+    totalSales+=Number(s.total)||0;
+    totalProfit+=Number(s.profit)||0;
+
+    if(!daily[s.date]) daily[s.date]={sales:0,profit:0};
+    daily[s.date].sales+=Number(s.total)||0;
+    daily[s.date].profit+=Number(s.profit)||0;
+
+    if(s.items?.broiler) broilerProfit += s.items.broiler.amount - s.items.broiler.cost;
+    if(s.items?.country) countryProfit += s.items.country.amount - s.items.country.cost;
+    if(s.items?.eggs) eggProfit += s.items.eggs.amount - s.items.eggs.cost;
+    if(s.items?.masala) masalaProfit += s.items.masala.amount - s.items.masala.cost;
+
+    bills.push(s);
+  });
+
+  // ========= PURCHASES =========
+  let broilerPurchase=0,countryPurchase=0,eggPurchase=0;
+
+  stockSnap.forEach(doc=>{
+    const s=doc.data();
+    if(!s.date) return;
+    if(s.date > to) return;
+
+    const qty = Number(
+      s.sellableKg ??
+      s.remainingKg ??
+      s.rawKg ??
+      s.receivedQty ??
+      0
+    );
+
+    if(s.type==="broiler") broilerPurchase+=qty;
+    if(s.type==="country") countryPurchase+=qty;
+    if(s.type==="eggs") eggPurchase+=qty;
+  });
+
+  // ========= STOCK =========
+  const broilerAvailable = broilerPurchase - broilerSoldTotal;
+  const countryAvailable = countryPurchase - countrySoldTotal;
+  const eggAvailable = eggPurchase - eggSoldTotal;
+
+  // ========= UI =========
+  totalSalesSpan.innerText = totalSales.toFixed(2);
+  totalProfitSpan.innerText = totalProfit.toFixed(2);
+  broilerAvailableSpan.innerText = broilerAvailable.toFixed(2);
+  countryAvailableSpan.innerText = countryAvailable.toFixed(2);
+  eggAvailableSpan.innerText = eggAvailable;
+
+  // Fix element references
+  document.getElementById("totalSales").innerText = totalSales.toFixed(2);
+  document.getElementById("totalProfit").innerText = totalProfit.toFixed(2);
+  document.getElementById("broilerAvailable").innerText = broilerAvailable.toFixed(2);
+  document.getElementById("countryAvailable").innerText = countryAvailable.toFixed(2);
+  document.getElementById("eggAvailable").innerText = eggAvailable;
+
+  // ========= CHARTS =========
+  const labels = Object.keys(daily).sort();
+  const salesData = labels.map(d=>daily[d].sales);
+  const profitData = labels.map(d=>daily[d].profit);
+
+  if(salesChart) salesChart.destroy();
+  if(profitChart) profitChart.destroy();
+  if(productPieChart) productPieChart.destroy();
+
+  salesChart=new Chart(document.getElementById("salesChart"),{
+    type:"line",
+    data:{labels,datasets:[{label:"Sales ₹",data:salesData,borderColor:"#4f46e5"}]}
+  });
+
+  profitChart=new Chart(document.getElementById("profitChart"),{
+    type:"line",
+    data:{labels,datasets:[{label:"Profit ₹",data:profitData,borderColor:"#16a34a"}]}
+  });
+
+  productPieChart=new Chart(document.getElementById("productPie"),{
+    type:"pie",
+    data:{
+      labels:["Broiler","Country","Eggs","Masala"],
+      datasets:[{data:[broilerProfit,countryProfit,eggProfit,masalaProfit]}]
+    }
+  });
+
+  // ========= BILLS =========
+  const list=document.getElementById("billList");
+  if(bills.length===0){
+    list.innerHTML="No Sales";
+    return;
+  }
+
+  list.innerHTML=bills.map(s=>`
+    <div class="bill">
+      <div class="bill-head">
+        <span>${s.date} | ${s.payment?.toUpperCase()}</span>
+        <span>₹${s.total}</span>
+      </div>
+    </div>
+  `).join("");
 }
-});
 
-document.getElementById("monthExpense").innerText=monthExpense.toFixed(2);
-
-
-const alerts=[];
-
-if(broiler<5) alerts.push("⚠ Broiler below 5kg");
-if(eggs<30) alerts.push("⚠ Eggs below 30");
-
-document.getElementById("alerts").innerHTML=
-alerts.map(a=>`<div class="warning">${a}</div>`).join("");
-
-}
-
-loadDashboard();
+loadData();
 
 </script>
 
