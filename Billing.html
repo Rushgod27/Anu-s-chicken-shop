@@ -6,371 +6,202 @@
 content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 
 <title>Anu’s Chicken Shop – Billing</title>
-
-<style>
-
-/* ===============================
-   ANU CHICKEN SHOP – PREMIUM POS UI
-================================ */
-
-html,body{
-  margin:0;
-  padding:0;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
-  background:linear-gradient(135deg,#eef2ff,#f8fafc);
-  color:#1f2937;
-  -webkit-text-size-adjust:100%;
-  touch-action:manipulation;
-}
-
-*{
-  box-sizing:border-box;
-}
-
-/* ================= HEADER ================= */
-
-.header{
-  background:linear-gradient(135deg,#f59e0b,#fbbf24);
-  padding:18px;
-  font-size:26px;
-  font-weight:900;
-  text-align:center;
-  color:#111827;
-  letter-spacing:0.5px;
-  box-shadow:0 4px 12px rgba(0,0,0,0.08);
-}
-
-/* ================= LAYOUT ================= */
-
-.container{
-  max-width:1400px;
-  margin:auto;
-  padding:14px;
-}
-
-.main{
-  display:grid;
-  grid-template-columns:1fr 460px;
-  gap:18px;
-}
-
-/* ================= CARD ================= */
-
-.card{
-  background:#ffffff;
-  border-radius:20px;
-  padding:18px;
-  margin-bottom:14px;
-  box-shadow:
-    0 6px 16px rgba(0,0,0,0.06),
-    0 2px 6px rgba(0,0,0,0.03);
-  transition:all 0.2s ease;
-}
-
-.card h3{
-  margin:0 0 12px;
-  font-weight:800;
-  font-size:18px;
-}
-
-/* ================= ROW ================= */
-
-.row{
-  display:flex;
-  gap:12px;
-  margin-bottom:12px;
-}
-
-/* ================= INPUT ================= */
-
-input{
-  width:100%;
-  padding:16px;
-  font-size:18px;
-  border-radius:14px;
-  border:2px solid #e5e7eb;
-  background:#f9fafb;
-  outline:none;
-  transition:all 0.2s ease;
-}
-
-input:focus{
-  border-color:#4f46e5;
-  background:#ffffff;
-  box-shadow:0 0 0 3px rgba(79,70,229,0.15);
-}
-
-/* ================= BUTTON ================= */
-
-.btn{
-  flex:1;
-  padding:14px;
-  font-size:15px;
-  font-weight:800;
-  border:none;
-  border-radius:14px;
-  background:#e5e7eb;
-  transition:all 0.2s ease;
-  cursor:pointer;
-}
-
-.btn:hover{
-  background:#d1d5db;
-}
-
-.btn.active{
-  background:linear-gradient(135deg,#f59e0b,#fbbf24);
-  color:#111827;
-  box-shadow:0 4px 10px rgba(0,0,0,0.15);
-}
-
-/* ================= PRIMARY ================= */
-
-.primary{
-  width:100%;
-  padding:18px;
-  font-size:20px;
-  font-weight:900;
-  border:none;
-  border-radius:16px;
-  background:linear-gradient(135deg,#4f46e5,#6366f1);
-  color:#fff;
-  cursor:pointer;
-  transition:all 0.2s ease;
-  box-shadow:0 6px 14px rgba(79,70,229,0.3);
-}
-
-.primary:hover{
-  transform:translateY(-2px);
-  box-shadow:0 8px 18px rgba(79,70,229,0.4);
-}
-
-/* ================= TOTAL ================= */
-
-.total{
-  background:linear-gradient(135deg,#dbeafe,#bfdbfe);
-  font-size:28px;
-  font-weight:900;
-  padding:16px;
-  border-radius:16px;
-  text-align:center;
-  color:#1e3a8a;
-}
-
-/* ================= RETURN ================= */
-
-.return{
-  background:linear-gradient(135deg,#dcfce7,#bbf7d0);
-  font-size:18px;
-  font-weight:900;
-  padding:12px;
-  border-radius:14px;
-}
-
-.return.negative{
-  background:linear-gradient(135deg,#fee2e2,#fecaca);
-  color:#991b1b;
-}
-
-/* ================= KEYPAD ================= */
-
-.keypad-wrap{
-  position:sticky;
-  top:14px;
-  height:95vh;
-}
-
-.keypad{
-  background:linear-gradient(145deg,#111827,#1f2937);
-  border-radius:30px;
-  padding:24px;
-  height:100%;
-  display:grid;
-  grid-template-columns:repeat(3,1fr);
-  gap:20px;
-  box-shadow:
-    inset 0 0 20px rgba(255,255,255,0.02),
-    0 10px 25px rgba(0,0,0,0.3);
-}
-
-.keypad button{
-  font-size:34px;
-  font-weight:900;
-  border:none;
-  border-radius:24px;
-  background:linear-gradient(145deg,#374151,#2d3748);
-  color:#ffffff;
-  min-height:90px;
-  cursor:pointer;
-  transition:all 0.15s ease;
-  box-shadow:
-    4px 4px 10px rgba(0,0,0,0.4),
-    -4px -4px 8px rgba(255,255,255,0.05);
-}
-
-.keypad button:active{
-  transform:scale(0.95);
-}
-
-.keypad .del{
-  background:linear-gradient(145deg,#ef4444,#dc2626);
-}
-
-.stockBar{
-display:flex;
-gap:10px;
-padding:10px;
-flex-wrap:wrap;
-background:#ffffff;
-border-bottom:1px solid #e5e7eb;
-justify-content:center;
-}
-
-.stockItem{
-background:#eef2ff;
-padding:8px 14px;
-border-radius:10px;
-font-weight:800;
-font-size:14px;
-}
-
-</style>
 </head>
 
 <body>
 
-<div class="header">🐔 Anu’s Chicken Shop – Billing</div>
-
-<div class="stockBar">
-
-<div class="stockItem">
-🐔 Broiler: <span id="stockBroiler">0</span> kg
-</div>
-
-<div class="stockItem">
-🐓 Country: <span id="stockCountry">0</span> kg
-</div>
-
-<div class="stockItem">
-🥚 Eggs: <span id="stockEggs">0</span>
-</div>
-
-<div class="stockItem">
-🌶 Masala: <span id="stockMasala">0</span>
-</div>
-
-</div>
-
-<div class="container">
-<div class="main">
+<div>🐔 Anu’s Chicken Shop – Billing</div>
 
 <div>
 
-<div class="card">
+<div>
+🐔 Broiler: <span id="stockBroiler">0</span> kg |
+🐓 Country: <span id="stockCountry">0</span> kg |
+🥚 Eggs: <span id="stockEggs">0</span> |
+🌶 Masala: <span id="stockMasala">0</span>
+
+</div>
+
+<br>
+
+<div>
+
 <h3>Today’s Prices</h3>
+
 <input type="date" id="saleDate">
-<div class="row">
+
+<br><br>
+
 <input id="broilerPrice" placeholder="Broiler Price / kg">
+
 <input id="countryPrice" placeholder="Country Price / kg">
+
 <input id="eggPrice" placeholder="Egg Price">
-</div>
-<button class="primary" onclick="savePrices()">Save Prices</button>
+
+<br><br>
+
+<button onclick="savePrices()">Save Prices</button>
+
 </div>
 
-<div class="card">
+<br>
+
+<div>
+
 <h3>Add Items</h3>
-<div class="row">
-<button class="btn" onclick="toggleItem('broiler',this)">Broiler</button>
-<button class="btn" onclick="toggleItem('country',this)">Country</button>
-<button class="btn" onclick="toggleItem('egg',this)">Eggs</button>
-<button class="btn" onclick="toggleItem('masala',this)">Masala</button>
-</div>
+
+<button onclick="toggleItem('broiler',this)">Broiler</button>
+
+<button onclick="toggleItem('country',this)">Country</button>
+
+<button onclick="toggleItem('egg',this)">Eggs</button>
+
+<button onclick="toggleItem('masala',this)">Masala</button>
+
 </div>
 
-<div class="card" id="broilerBox" style="display:none">
+<br>
+
+<div id="broilerBox" style="display:none">
+
 <h3>Broiler</h3>
-<div class="row">
-<button class="btn" onclick="setMode('broiler','kg',this)">KG</button>
-<button class="btn" onclick="setMode('broiler','rs',this)">₹</button>
-</div>
+
+<button onclick="setMode('broiler','kg',this)">KG</button>
+
+<button onclick="setMode('broiler','rs',this)">₹</button>
+
+<br><br>
+
 <input id="broilerKg" readonly>
+
 <input id="broilerRs" style="display:none" readonly>
+
 </div>
 
-<div class="card" id="countryBox" style="display:none">
+<br>
+
+<div id="countryBox" style="display:none">
+
 <h3>Country</h3>
-<div class="row">
-<button class="btn" onclick="setMode('country','kg',this)">KG</button>
-<button class="btn" onclick="setMode('country','rs',this)">₹</button>
-</div>
+
+<button onclick="setMode('country','kg',this)">KG</button>
+
+<button onclick="setMode('country','rs',this)">₹</button>
+
+<br><br>
+
 <input id="countryKg" readonly>
+
 <input id="countryRs" style="display:none" readonly>
+
 </div>
 
-<div class="card" id="eggBox" style="display:none">
+<br>
+
+<div id="eggBox" style="display:none">
+
 <h3>Eggs</h3>
+
 <input id="eggQty" readonly>
+
 </div>
 
-<div class="card" id="masalaBox" style="display:none">
+<br>
+
+<div id="masalaBox" style="display:none">
+
 <h3>Masala</h3>
+
 <input id="masalaAmt" readonly>
+
 </div>
 
-<div class="card">
+<br>
+
+<div>
+
 <h3>Payment</h3>
-<div class="row">
-<button class="btn" onclick="setPayment('cash',this)">Cash</button>
-<button class="btn" onclick="setPayment('online',this)">Online</button>
-</div>
+
+<button onclick="setPayment('cash',this)">Cash</button>
+
+<button onclick="setPayment('online',this)">Online</button>
+
+<br><br>
+
 <input id="received" style="display:none" readonly>
-<div id="returnBox" class="return" style="display:none">
+
+<div id="returnBox" style="display:none">
+
 Return ₹ <span id="returnAmt">0.00</span>
-</div>
+
 </div>
 
-<div class="card">
-<div class="total">TOTAL ₹ <span id="total">0.00</span></div>
-<button class="primary" onclick="confirmSale()">SALE</button>
 </div>
 
-<!-- TODAY SALES -->
-<div class="card">
+<br>
+
+<div>
+
+<h2>TOTAL ₹ <span id="total">0.00</span></h2>
+
+<button id="saleBtn" onclick="confirmSale()">SALE</button>
+
+</div>
+
+<br>
+
+<div>
+
 <h3>🧾 Today Sales</h3>
-<div id="todaySummary" style="font-weight:800;margin-bottom:10px"></div>
+
+<div id="todaySummary"></div>
+
+<br>
+
 <div id="todayList">Loading...</div>
-</div>
 
 </div>
 
-<div class="keypad-wrap">
-<div class="keypad">
+</div>
+
+<br><br>
+
+<div>
+
 <button onclick="add('7')">7</button>
 <button onclick="add('8')">8</button>
 <button onclick="add('9')">9</button>
+
+<br>
+
 <button onclick="add('4')">4</button>
 <button onclick="add('5')">5</button>
 <button onclick="add('6')">6</button>
+
+<br>
+
 <button onclick="add('1')">1</button>
 <button onclick="add('2')">2</button>
 <button onclick="add('3')">3</button>
+
+<br>
+
 <button onclick="add('0')">0</button>
 <button onclick="add('.')">.</button>
-<button class="del" onclick="del()">⌫</button>
-</div>
-</div>
+<button onclick="del()">⌫</button>
 
-</div>
 </div>
 
 <script type="module">
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-app.js";
+
 import {
 getFirestore, collection, addDoc, query,
 where, orderBy, getDocs, getDoc, serverTimestamp,
 updateDoc, doc, increment
 } from "https://www.gstatic.com/firebasejs/10.7.0/firebase-firestore.js";
+
 
 initializeApp({
 apiKey:"AIzaSyComVLxo36wvogoBFEoWyea-_yESW9BIPU",
@@ -379,6 +210,9 @@ projectId:"anus-chicken-shop"
 });
 
 const db=getFirestore();
+
+
+/* DATE */
 
 const now=new Date();
 
@@ -397,56 +231,14 @@ loadTodaySales();
 function getSaleDate(){
 return saleDate.value || defaultDate;
 }
+
+
 let saleProcessing=false;
 
-/* ===============================
-   LIVE STOCK UPDATE
-================================ */
 
-async function decreaseLiveStock(type,qty){
-
-const ref=doc(db,"stock_current","live");
-
-if(type==="broiler"){
-await updateDoc(ref,{
-"broiler.availableKg":increment(-qty),
-"broiler.soldKg":increment(qty)
-});
-}
-
-if(type==="country"){
-await updateDoc(ref,{
-"country.availableKg":increment(-qty),
-"country.soldKg":increment(qty)
-});
-}
-
-if(type==="eggs"){
-await updateDoc(ref,{
-"eggs.availableQty":increment(-qty),
-"eggs.soldQty":increment(qty)
-});
-}
-
-if(type==="masala"){
-await updateDoc(ref,{
-"masala.availableQty":increment(-qty),
-"masala.soldQty":increment(qty)
-});
-}
-
-}
-
-/* ===============================
-   KEYPAD
-================================ */
+/* KEYPAD */
 
 let activeInput=null;
-let payment=null;
-
-let active={broiler:false,country:false,egg:false,masala:false};
-
-let mode={broiler:"kg",country:"kg"};
 
 document.querySelectorAll("input").forEach(i=>i.onclick=()=>activeInput=i);
 
@@ -464,32 +256,30 @@ calc();
 }
 };
 
-/* ===============================
-   ITEM TOGGLE
-================================ */
 
-window.toggleItem=(t,b)=>{
+/* ITEM TOGGLE */
+
+let active={broiler:false,country:false,egg:false,masala:false};
+
+window.toggleItem=(t)=>{
+
 active[t]=!active[t];
-b.classList.toggle("active");
 
 document.getElementById(t+"Box").style.display=
 active[t]?"block":"none";
 
 calc();
+
 };
 
-/* ===============================
-   MODE
-================================ */
 
-window.setMode=(t,m,b)=>{
+/* MODE */
+
+let mode={broiler:"kg",country:"kg"};
+
+window.setMode=(t,m)=>{
 
 mode[t]=m;
-
-b.parentElement.querySelectorAll(".btn")
-.forEach(x=>x.classList.remove("active"));
-
-b.classList.add("active");
 
 document.getElementById(t+"Kg").style.display=
 m==="kg"?"block":"none";
@@ -499,18 +289,14 @@ m==="rs"?"block":"none";
 
 };
 
-/* ===============================
-   PAYMENT
-================================ */
 
-window.setPayment=(p,b)=>{
+/* PAYMENT */
+
+let payment=null;
+
+window.setPayment=(p)=>{
 
 payment=p;
-
-b.parentElement.querySelectorAll(".btn")
-.forEach(x=>x.classList.remove("active"));
-
-b.classList.add("active");
 
 received.style.display=p==="cash"?"block":"none";
 
@@ -518,9 +304,8 @@ returnBox.style.display=p==="cash"?"block":"none";
 
 };
 
-/* ===============================
-   CALCULATE
-================================ */
+
+/* CALCULATE */
 
 function calc(){
 
@@ -550,214 +335,37 @@ if(payment==="cash"){
 
 const r=(+received.value||0)-t;
 
-returnAmt.innerText=r.toFixed(2);
-
-returnBox.classList.toggle("negative",r<0);
+returnAmt.innerText=Math.abs(r).toFixed(2);
 
 }
 
 }
 
-/* ===============================
-   SALE
-================================ */
 
-window.confirmSale=async()=>{
+/* STOCK CHECK */
 
-if(saleProcessing)return;
+async function checkStock(type,qty){
 
-saleProcessing=true;
+const ref=doc(db,"stock_current","live");
 
-try{
+const snap=await getDoc(ref);
 
-let items={};
-let finalTotal=0;
-let totalCost=0;
+const s=snap.data();
 
-if(!active.broiler && !active.country && !active.egg && !active.masala){
+let available=0;
 
-alert("No items selected");
+if(type==="broiler") available=s.broiler?.availableKg||0;
+if(type==="country") available=s.country?.availableKg||0;
+if(type==="eggs") available=s.eggs?.availableQty||0;
+if(type==="masala") available=s.masala?.availableQty||0;
 
-saleProcessing=false;
-
-return;
+if(qty>available)
+throw new Error("Not enough stock for "+type);
 
 }
 
-/* BROILER */
 
-if(active.broiler){
-
-const rate=+broilerPrice.value||0;
-
-const qty=mode.broiler==="kg"
-?+broilerKg.value
-:(+broilerRs.value/rate||0);
-
-if(qty>0){
-
-const amount=qty*rate;
-
-const cost=await deductStock("broiler",qty);
-
-await decreaseLiveStock("broiler",qty);
-
-items.broiler={
-qty:+qty.toFixed(3),
-rate,
-amount:+amount.toFixed(2),
-cost
-};
-
-finalTotal+=amount;
-totalCost+=cost;
-
-}
-
-}
-
-/* COUNTRY */
-
-if(active.country){
-
-const rate=+countryPrice.value||0;
-
-const qty=mode.country==="kg"
-?+countryKg.value
-:(+countryRs.value/rate||0);
-
-if(qty>0){
-
-const amount=qty*rate;
-
-const cost=await deductStock("country",qty);
-
-await decreaseLiveStock("country",qty);
-
-items.country={
-qty:+qty.toFixed(3),
-rate,
-amount:+amount.toFixed(2),
-cost
-};
-
-finalTotal+=amount;
-totalCost+=cost;
-
-}
-
-}
-
-/* EGGS */
-
-if(active.egg){
-
-const qty=+eggQty.value||0;
-const rate=+eggPrice.value||0;
-
-if(qty>0){
-
-const amount=qty*rate;
-
-const cost=await deductStock("eggs",qty);
-
-await decreaseLiveStock("eggs",qty);
-
-items.eggs={
-qty,
-rate,
-amount:+amount.toFixed(2),
-cost
-};
-
-finalTotal+=amount;
-totalCost+=cost;
-
-}
-
-}
-
-/* MASALA */
-
-if(active.masala){
-
-const amount=+masalaAmt.value||0;
-
-if(amount>0){
-
-const qty=1;
-
-const cost=await deductStock("masala",qty);
-
-await decreaseLiveStock("masala",qty);
-
-items.masala={
-qty,
-amount:+amount.toFixed(2),
-cost
-};
-
-finalTotal+=amount;
-totalCost+=cost;
-
-}
-
-}
-
-const profit=finalTotal-totalCost;
-
-await addDoc(collection(db,"sales"),{
-
-date:getSaleDate(),
-items,
-total:+finalTotal.toFixed(2),
-totalCost:+totalCost.toFixed(2),
-profit:+profit.toFixed(2),
-payment,
-createdAt:serverTimestamp()
-
-});
-
-alert("Sale saved");
-
-/* RESET */
-
-active={broiler:false,country:false,egg:false,masala:false};
-
-document.querySelectorAll(".btn")
-.forEach(b=>b.classList.remove("active"));
-
-document.querySelectorAll(".card[id$='Box']")
-.forEach(b=>b.style.display="none");
-
-broilerKg.value="";
-broilerRs.value="";
-countryKg.value="";
-countryRs.value="";
-eggQty.value="";
-masalaAmt.value="";
-received.value="";
-
-payment=null;
-
-total.innerText="0.00";
-
-loadTodaySales();
-loadLiveStock();
-
-}catch(e){
-
-alert(e.message);
-
-}
-
-saleProcessing=false;
-
-};
-
-/* ===============================
-   FIFO STOCK
-================================ */
+/* FIFO */
 
 async function deductStock(type,quantity){
 
@@ -769,7 +377,7 @@ const q=query(
 collection(db,"stock_entries"),
 where("type","==",type),
 where("status","==","active"),
-orderBy("createdAt")
+orderBy("createdAt","asc")
 );
 
 const snap=await getDocs(q);
@@ -811,19 +419,197 @@ remaining-=take;
 
 }
 
-if(remaining>0){
-
-throw new Error("Insufficient stock for "+type);
-
-}
+if(remaining>0) throw new Error("Insufficient stock");
 
 return +totalCost.toFixed(2);
 
 }
 
-/* ===============================
-   TODAY PRICES
-================================ */
+
+/* LIVE STOCK */
+
+async function decreaseLiveStock(type,qty){
+
+const ref=doc(db,"stock_current","live");
+
+if(type==="broiler")
+await updateDoc(ref,{
+"broiler.availableKg":increment(-qty),
+"broiler.soldKg":increment(qty)
+});
+
+if(type==="country")
+await updateDoc(ref,{
+"country.availableKg":increment(-qty),
+"country.soldKg":increment(qty)
+});
+
+if(type==="eggs")
+await updateDoc(ref,{
+"eggs.availableQty":increment(-qty),
+"eggs.soldQty":increment(qty)
+});
+
+if(type==="masala")
+await updateDoc(ref,{
+"masala.availableQty":increment(-qty),
+"masala.soldQty":increment(qty)
+});
+
+}
+
+
+/* SALE */
+
+window.confirmSale=async()=>{
+
+if(saleProcessing) return;
+
+if(!broilerPrice.value || !countryPrice.value || !eggPrice.value){
+alert("Set today's prices first");
+return;
+}
+
+if(!payment){
+alert("Select payment method");
+return;
+}
+
+saleProcessing=true;
+
+saleBtn.disabled=true;
+
+try{
+
+let items={};
+let finalTotal=0;
+let totalCost=0;
+
+if(active.broiler){
+
+const rate=+broilerPrice.value;
+
+const qty=mode.broiler==="kg"
+?+broilerKg.value
+:(+broilerRs.value/rate||0);
+
+await checkStock("broiler",qty);
+
+const amount=qty*rate;
+
+const cost=await deductStock("broiler",qty);
+
+await decreaseLiveStock("broiler",qty);
+
+items.broiler={qty,rate,amount,cost};
+
+finalTotal+=amount;
+totalCost+=cost;
+
+}
+
+/* COUNTRY */
+
+if(active.country){
+
+const rate=+countryPrice.value;
+
+const qty=mode.country==="kg"
+?+countryKg.value
+:(+countryRs.value/rate||0);
+
+await checkStock("country",qty);
+
+const amount=qty*rate;
+
+const cost=await deductStock("country",qty);
+
+await decreaseLiveStock("country",qty);
+
+items.country={qty,rate,amount,cost};
+
+finalTotal+=amount;
+totalCost+=cost;
+
+}
+
+/* EGGS */
+
+if(active.egg){
+
+const qty=+eggQty.value||0;
+
+await checkStock("eggs",qty);
+
+const rate=+eggPrice.value;
+
+const amount=qty*rate;
+
+const cost=await deductStock("eggs",qty);
+
+await decreaseLiveStock("eggs",qty);
+
+items.eggs={qty,rate,amount,cost};
+
+finalTotal+=amount;
+totalCost+=cost;
+
+}
+
+/* MASALA */
+
+if(active.masala){
+
+const amount=+masalaAmt.value||0;
+
+const qty=1;
+
+await checkStock("masala",qty);
+
+const cost=await deductStock("masala",qty);
+
+await decreaseLiveStock("masala",qty);
+
+items.masala={qty,amount,cost};
+
+finalTotal+=amount;
+totalCost+=cost;
+
+}
+
+
+const profit=finalTotal-totalCost;
+
+await addDoc(collection(db,"sales"),{
+
+date:getSaleDate(),
+items,
+total:+finalTotal.toFixed(2),
+totalCost:+totalCost.toFixed(2),
+profit:+profit.toFixed(2),
+payment,
+createdAt:serverTimestamp()
+
+});
+
+alert("Sale saved");
+
+location.reload();
+
+}catch(e){
+
+alert(e.message);
+
+}
+
+saleProcessing=false;
+
+saleBtn.disabled=false;
+
+};
+
+
+/* PRICES */
 
 window.savePrices=async()=>{
 
@@ -840,13 +626,10 @@ await addDoc(collection(db,"dailyPrices"),{
 date:getSaleDate(),
 
 broilerPrice:+broilerPrice.value,
-
 countryPrice:+countryPrice.value,
-
 eggPrice:+eggPrice.value,
 
 updatedAtMs:Date.now(),
-
 createdAt:serverTimestamp()
 
 });
@@ -856,6 +639,7 @@ alert("Prices saved");
 loadTodayPrices();
 
 };
+
 
 async function loadTodayPrices(){
 
@@ -880,166 +664,30 @@ latest=data;
 if(latest){
 
 broilerPrice.value=latest.broilerPrice;
-
 countryPrice.value=latest.countryPrice;
-
 eggPrice.value=latest.eggPrice;
 
 }
 
 }
 
-/* ===============================
-   TODAY SALES
-================================ */
 
-async function loadTodaySales(){
-
-const q=query(
-collection(db,"sales"),
-where("date","==",getSaleDate())
-);
-
-const snap=await getDocs(q);
-
-let data=[];
-
-snap.forEach(d=>{
-data.push(d.data());
-});
-
-/* newest first */
-
-data.sort((a,b)=>
-(b.createdAt?.seconds||0)-(a.createdAt?.seconds||0)
-);
-
-let totalAmt=0;
-let cashTotal=0;
-let onlineTotal=0;
-
-let broilerQty=0;
-let countryQty=0;
-let eggQty=0;
-let masalaAmt=0;
-
-let list="";
-
-data.forEach(s=>{
-
-totalAmt+=s.total||0;
-
-if(s.payment==="cash") cashTotal+=s.total||0;
-if(s.payment==="online") onlineTotal+=s.total||0;
-
-let itemsHTML="";
-
-/* BROILER */
-
-if(s.items?.broiler){
-
-broilerQty+=s.items.broiler.qty||0;
-
-itemsHTML+=`
-<div>🐔 Broiler ${s.items.broiler.qty}kg ₹${s.items.broiler.amount}</div>
-`;
-}
-
-/* COUNTRY */
-
-if(s.items?.country){
-
-countryQty+=s.items.country.qty||0;
-
-itemsHTML+=`
-<div>🐓 Country ${s.items.country.qty}kg ₹${s.items.country.amount}</div>
-`;
-}
-
-/* EGGS */
-
-if(s.items?.eggs){
-
-eggQty+=s.items.eggs.qty||0;
-
-itemsHTML+=`
-<div>🥚 Eggs ${s.items.eggs.qty} ₹${s.items.eggs.amount}</div>
-`;
-}
-
-/* MASALA */
-
-if(s.items?.masala){
-
-masalaAmt+=s.items.masala.amount||0;
-
-itemsHTML+=`
-<div>🌶 Masala ₹${s.items.masala.amount}</div>
-`;
-}
-
-/* TIME */
-
-let saleTime="";
-
-if(s.createdAt?.toDate){
-const d=s.createdAt.toDate();
-saleTime=d.toLocaleDateString()+" • "+d.toLocaleTimeString();
-}
-
-list+=`
-
-<div style="background:#f8fafc;padding:10px;border-radius:10px;margin-bottom:8px">
-
-<div style="display:flex;justify-content:space-between;font-weight:800">
-
-<span>${saleTime}</span>
-
-<span>₹${s.total} • ${s.payment}</span>
-
-</div>
-
-${itemsHTML}
-
-</div>
-
-`;
-
-});
-
-/* SUMMARY */
-
-todaySummary.innerHTML=`
-Total ₹ ${totalAmt.toFixed(2)} |
-Cash ₹ ${cashTotal.toFixed(2)} |
-Online ₹ ${onlineTotal.toFixed(2)} |
-🐔 ${broilerQty.toFixed(2)}kg |
-🐓 ${countryQty.toFixed(2)}kg |
-🥚 ${eggQty} |
-🌶 ₹${masalaAmt.toFixed(2)} |
-Bills ${data.length}
-`;
-
-todayList.innerHTML=list||"No sales today";
-
-}
-
+/* LIVE STOCK */
 
 async function loadLiveStock(){
 
-const ref = doc(db,"stock_current","live");
-const snap = await getDoc(ref);
+const ref=doc(db,"stock_current","live");
 
-if(!snap.exists()) return;
+const snap=await getDoc(ref);
 
-const s = snap.data();
+const s=snap.data();
 
 stockBroiler.innerText=(s.broiler?.availableKg||0).toFixed(2);
 stockCountry.innerText=(s.country?.availableKg||0).toFixed(2);
 stockEggs.innerText=(s.eggs?.availableQty||0);
 stockMasala.innerText=(s.masala?.availableQty||0);
-}
 
+}
 
 loadTodayPrices();
 loadTodaySales();
