@@ -1,0 +1,155 @@
+/* ===============================
+GLOBAL
+=============================== */
+
+body{
+margin:0;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto;
+background:linear-gradient(135deg,#eef2ff,#f8fafc);
+color:#1f2937;
+}
+
+/* ===============================
+HEADER
+=============================== */
+
+body > div:first-child{
+background:linear-gradient(135deg,#f59e0b,#fbbf24);
+padding:18px;
+text-align:center;
+font-size:24px;
+font-weight:900;
+box-shadow:0 4px 12px rgba(0,0,0,0.08);
+}
+
+/* ===============================
+MAIN WRAPPER
+=============================== */
+
+body > div:nth-child(2){
+max-width:1100px;
+margin:auto;
+padding:18px;
+}
+
+/* ===============================
+STOCK BAR
+=============================== */
+
+body > div:nth-child(2) > div:first-child{
+background:white;
+padding:10px;
+border-radius:10px;
+margin-bottom:18px;
+font-weight:700;
+box-shadow:0 4px 10px rgba(0,0,0,0.05);
+}
+
+/* ===============================
+SECTION CARDS
+=============================== */
+
+h3{
+margin-top:0;
+}
+
+body > div:nth-child(2) > div{
+background:white;
+padding:16px;
+border-radius:14px;
+margin-bottom:16px;
+box-shadow:0 4px 12px rgba(0,0,0,0.05);
+}
+
+/* ===============================
+INPUTS
+=============================== */
+
+input{
+width:100%;
+padding:12px;
+margin:6px 0;
+border-radius:10px;
+border:1px solid #d1d5db;
+font-size:16px;
+}
+
+/* ===============================
+BUTTONS
+=============================== */
+
+button{
+padding:10px 14px;
+margin:4px;
+border:none;
+border-radius:10px;
+font-weight:700;
+background:#4f46e5;
+color:white;
+cursor:pointer;
+transition:0.2s;
+}
+
+button:hover{
+background:#4338ca;
+}
+
+/* ===============================
+TOTAL
+=============================== */
+
+h2{
+background:#eef2ff;
+padding:14px;
+border-radius:12px;
+font-weight:900;
+text-align:center;
+}
+
+/* ===============================
+SALE BUTTON
+=============================== */
+
+#saleBtn{
+width:100%;
+padding:16px;
+font-size:20px;
+background:#16a34a;
+}
+
+#saleBtn:hover{
+background:#15803d;
+}
+
+/* ===============================
+TODAY SALES
+=============================== */
+
+#todayList div{
+background:#f8fafc;
+padding:10px;
+border-radius:8px;
+margin-bottom:6px;
+}
+
+/* ===============================
+KEYPAD
+=============================== */
+
+body > div:last-child{
+max-width:320px;
+margin:20px auto;
+display:grid;
+grid-template-columns:repeat(3,1fr);
+gap:10px;
+}
+
+body > div:last-child button{
+font-size:22px;
+padding:16px;
+background:#111827;
+}
+
+body > div:last-child button:hover{
+background:#374151;
+}
